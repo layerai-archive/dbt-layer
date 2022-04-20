@@ -4,7 +4,7 @@ import re
 
 # require python 3.7 or newer
 if sys.version_info < (3, 7):
-    print("Error: layer-bigquery does not support this version of Python.")
+    print("Error: dbt-layer-bigquery does not support this version of Python.")
     print("Please upgrade to Python 3.7 or higher.")
     sys.exit(1)
 
@@ -54,7 +54,7 @@ def _get_dbt_core_version():
 package_name = "dbt-layer-bigquery"
 package_version = "0.1.0"
 dbt_core_version = _get_dbt_core_version()
-description = """The Layer-BigQuery adapter plugin for dbt"""
+description = """The Layer / BigQuery adapter plugin for dbt"""
 
 
 requirements = [

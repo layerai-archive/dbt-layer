@@ -1,5 +1,5 @@
 
-name: dbt_layer-bigquery
+name: layer_bigquery
 version: 1.0
 config-version: 2
 

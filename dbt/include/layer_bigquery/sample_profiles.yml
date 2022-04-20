@@ -2,7 +2,7 @@
 default:
   outputs:
     dev:
-      type: layer-bigquery
+      type: layer_bigquery
       # Add sample credentials here, like:
       # host: <host>
       # port: <port_num>

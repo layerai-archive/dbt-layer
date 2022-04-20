@@ -1,8 +1,8 @@
 
-{% macro layer-bigquery__get_catalog(information_schema, schemas) -%}
+{% macro layer_bigquery__get_catalog(information_schema, schemas) -%}
 
   {% set msg -%}
-    get_catalog not implemented for layer-bigquery
+    get_catalog not implemented for layer_bigquery
   {%- endset %}
 
   {{ exceptions.raise_compiler_error(msg) }}

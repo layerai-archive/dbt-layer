@@ -1,26 +1,14 @@
 from dataclasses import dataclass
 
-from dbt.adapters.base import Credentials
-from dbt.adapters.base import BaseConnectionManager
+from dbt.adapters.bigquery.connections import BigQueryCredentials, BigQueryConnectionManager
 
 
 @dataclass
-class LayerBigQueryCredentials(Credentials):
-    # Add credentials members here, like:
-    # host: str
-    # port: int
-    # username: str
-    # password: str
-
+class LayerBigQueryCredentials(BigQueryCredentials):
     @property
     def type(self):
-        return 'layer-bigquery'
-
-    def _connection_keys(self):
-        # return an iterator of keys to pretty-print in 'dbt debug'.
-        # Omit fields like 'password'!
-        raise NotImplementedError
+        return 'layer_bigquery'
 
 
-class LayerBigQueryConnectionManager(BaseConnectionManager):
-    TYPE = 'layer-bigquery'
+class LayerBigQueryConnectionManager(BigQueryConnectionManager):
+    TYPE = 'layer_bigquery'

@@ -1,6 +1,6 @@
-from dbt.adapters.base import BaseAdapter
+from dbt.adapters.bigquery.impl import BigQueryAdapter
 from dbt.adapters.layer_bigquery import LayerBigQueryConnectionManager
 
 
-class LayerBigQueryAdapter(BaseAdapter):
+class LayerBigQueryAdapter(BigQueryAdapter):
     ConnectionManager = LayerBigQueryConnectionManager
