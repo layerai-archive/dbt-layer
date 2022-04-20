@@ -1,0 +1,6 @@
+
+name: dbt_dbt-layer-bigquery
+version: 1.0
+config-version: 2
+
+macro-paths: ["macros"]
