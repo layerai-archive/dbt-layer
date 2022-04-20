@@ -1,5 +1,5 @@
 from dbt.adapters.base import BaseAdapter
-from dbt.adapters.dbt-layer-bigquery import LayerBigQueryConnectionManager
+from dbt.adapters.layer_bigquery import LayerBigQueryConnectionManager
 
 
 class LayerBigQueryAdapter(BaseAdapter):

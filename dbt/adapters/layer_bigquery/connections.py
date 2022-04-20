@@ -14,7 +14,7 @@ class LayerBigQueryCredentials(Credentials):
 
     @property
     def type(self):
-        return 'dbt-layer-bigquery'
+        return 'layer-bigquery'
 
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'.
@@ -23,4 +23,4 @@ class LayerBigQueryCredentials(Credentials):
 
 
 class LayerBigQueryConnectionManager(BaseConnectionManager):
-    TYPE = 'dbt-layer-bigquery'
+    TYPE = 'layer-bigquery'
