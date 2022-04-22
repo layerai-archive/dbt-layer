@@ -3,21 +3,6 @@ from typing import Optional, Any, Dict
 
 from dbt.adapters.bigquery.connections import BigQueryCredentials, BigQueryConnectionManager
 
-# layer specific code
-
-class LayerConnectionManager(object):
-    """
-    Layer specific overrides
-    """
-
-    # def execute(self, sql, **kwargs):
-    #     print(repr(sql))
-    #     # conn = self.get_thread_connection()
-    #     return super(self).execute(sql, **kwargs)
-
-
-# end layer specific code
-
 
 @dataclass
 class LayerBigQueryCredentials(BigQueryCredentials):
@@ -30,5 +15,5 @@ class LayerBigQueryCredentials(BigQueryCredentials):
         return 'layer_bigquery'
 
 
-class LayerBigQueryConnectionManager(LayerConnectionManager, BigQueryConnectionManager):
+class LayerBigQueryConnectionManager(BigQueryConnectionManager):
     TYPE = 'layer_bigquery'
