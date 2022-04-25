@@ -25,7 +25,6 @@ import cloudpickle
 
 from dbt.adapters.protocol import AdapterConfig
 from dbt.adapters.base.relation import BaseRelation
-from dbt.clients import agate_helper
 from dbt.clients.jinja import MacroGenerator
 from dbt.context.providers import generate_runtime_model_context
 from dbt.contracts.connection import AdapterResponse
@@ -42,6 +41,7 @@ import layer
 from layer.decorators import model as model_decorator
 
 from .sql_parser import LayerSQL, LayerSQLParser
+from . import pandas_helper
 
 
 logger = AdapterLogger("Layer")
@@ -239,9 +239,7 @@ class LayerAdapter(object):
             # call super() instead of self to avoid a potential infinite loop
             response, table = super().execute(sql, auto_begin=True, fetch=True)
             super().commit_if_has_connection()
-            dataframe = pd.DataFrame.from_records(
-                table.rows, columns=table.column_names
-            )
+            dataframe = pandas_helper.from_agate_table(table)
 
         return dataframe
 
@@ -250,10 +248,7 @@ class LayerAdapter(object):
         Loads the given pandas dataframe into the given node/relation
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
-            path = Path(tmpdirname) / 'data.csv'
-            dataframe.to_csv(path)
-            table = agate_helper.from_csv(path, node.config.column_types)
-            table.original_abspath = path
+            table = pandas_helper.to_agate_table_with_path(dataframe, Path(tmpdirname) / 'data.csv')
 
             materialization_macro = self._manifest.macros['macro.dbt.materialization_seed_default']
 
