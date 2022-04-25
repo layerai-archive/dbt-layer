@@ -60,8 +60,9 @@ description = """The Layer / BigQuery adapter plugin for dbt"""
 requirements = [
     "dbt-core~={}".format(dbt_core_version),
     "dbt-bigquery==1.0.0",
-    "pandas==1.4.2",
-    "sqlparse==0.4.2",
+    "layer-sdk>=0.9.350195",
+    "pandas~=1.4.2",
+    "sqlparse~=0.4.2",
 ]
 
 setup_requirements = [

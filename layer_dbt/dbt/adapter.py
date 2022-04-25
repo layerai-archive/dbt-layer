@@ -15,8 +15,13 @@ from typing import (
     Union,
     Set,
 )
+from types import ModuleType
 from importlib.machinery import SourceFileLoader
 import tempfile
+
+import agate
+import pandas as pd
+import cloudpickle
 
 from dbt.adapters.protocol import AdapterConfig
 from dbt.adapters.base.relation import BaseRelation
@@ -33,12 +38,12 @@ from dbt.parser.manifest import process_node
 from dbt.parser.sql import SqlBlockParser
 from dbt.task.sql import SqlCompileRunner
 
-import agate
-import pandas as pd
+import layer
+from layer.decorators import model as model_decorator
 
 from .sql_parser import LayerSQL, LayerSQLParser
 
-# layer specific code
+
 logger = AdapterLogger("Layer")
 
 
@@ -127,29 +132,16 @@ class LayerAdapter(object):
             raise RuntimeException(f'Unknown layer function "{layer_sql.function_type}"')
 
 
-    def _run_layer_build(self, source_node, source_relation, target_node, target_relation):
+    def _run_layer_build(
+            self,
+            source_node: ManifestNode, source_relation: BaseRelation,
+            target_node: ManifestNode, target_relation: BaseRelation,
+    ) -> Tuple[LayerAdapterResponse, agate.Table]:
         """
-        run Layer and call `load_dataframe` on the returned dataframe
+        Build a dbt model using the given python script
         """
-        layer_meta = LayerMeta(**target_node.meta.get('layer', {}))
-
-        # to get the entrypoint absolute path
-        # - if entry point is not absolute, append it to the patch_path directory
-        # - if entry point is absolute, take it from the project root
-        entrypoint = PurePosixPath(layer_meta.entrypoint)
-
-        if entrypoint.is_absolute():
-            entrypoint = entrypoint.relative_to(entrypoint.root)
-        else:
-            _, patch_file_path = target_node.patch_path.split("://")
-            entrypoint = Path(patch_file_path).parent / entrypoint
-
-        entrypoint = Path(target_node.root_path) / entrypoint
-        logger.debug('Loading Layer entrypoint at {}', entrypoint)
-
         # load entrypoint
-        entrypoint_module = SourceFileLoader(
-            f"layer_entrypoint.{target_node.unique_id}", str(entrypoint)).load_module()
+        entrypoint_module = self._get_layer_entrypoint_module(target_node)
 
         # load source dataframe
         input_df = self._fetch_dataframe(source_node, source_relation)
@@ -160,30 +152,82 @@ class LayerAdapter(object):
         logger.debug('Built output dataframe - {}', output_df.shape)
 
         # save the resulting dataframe to the target
-        self._load_dataframe(target_node, target_relation, output_df)
+        _, table = self._load_dataframe(target_node, target_relation, output_df)
 
         response = LayerAdapterResponse(
-            _message=f'INSERT LAYER DATASET {output_df.size}',
-            rows_affected=output_df.size,
+            _message=f'LAYER DATASET INSERT {output_df.shape[0]}',
+            rows_affected=output_df.shape[0],
             code='LAYER',
         )
-        table = agate_helper.empty_table()
         return response, table
 
     def _run_layer_train(
             self,
             source_node: ManifestNode, source_relation: BaseRelation,
-            target_node: ManifestNode, target_relation: BaseRelation
+            target_node: ManifestNode, target_relation: BaseRelation,
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         """
+        Train a machine learning model using the given python script and save it as a dbt model
         """
+        # load entrypoint
+        entrypoint_module = self._get_layer_entrypoint_module(target_node)
+
+        # load source dataframe
+        input_df = self._fetch_dataframe(source_node, source_relation)
+        logger.debug('Fetched input dataframe - {}', input_df.shape)
+
+        # build the dataframe
+        project_name = self.config.credentials.layer_project
+        logger.debug('Training model {}, in project {}', target_node.name, project_name)
+        layer.init(project_name)
+        def training_func():
+            return entrypoint_module.main(input_df)
+        trainer = model_decorator(target_node.name)(training_func)()
+        logger.debug('Trained model {}, in project {}', target_node.name, project_name)
+
+        output_df = pd.DataFrame.from_records(
+            [[target_node.name]], columns=['name']
+        )
+
+        # save the resulting dataframe to the target
+        _, table = self._load_dataframe(target_node, target_relation, output_df)
+
         response = LayerAdapterResponse(
-            _message='LAYER MODEL',
-            rows_affected=0, # TODO
+            _message=f'LAYER MODEL TRAIN {output_df.shape[0]}',
+            rows_affected=output_df.shape[0],
             code='LAYER',
         )
-        table = agate_helper.empty_table()
         return response, table
+
+    def _get_layer_entrypoint_module(self, node: ManifestNode) -> ModuleType:
+        """
+        get the entrypoint absolute path
+        - if entry point is not absolute, append it to the patch_path directory
+        - if entry point is absolute, take it from the project root
+
+        then load the module at that path
+        """
+
+        layer_meta = LayerMeta(**node.meta.get('layer', {}))
+
+        entrypoint = PurePosixPath(layer_meta.entrypoint)
+
+        if entrypoint.is_absolute():
+            entrypoint = entrypoint.relative_to(entrypoint.root)
+        else:
+            _, patch_file_path = node.patch_path.split("://")
+            entrypoint = Path(patch_file_path).parent / entrypoint
+
+        entrypoint = Path(node.root_path) / entrypoint
+        logger.debug('Loading Layer entrypoint at {}', entrypoint)
+
+        entrypoint_module = SourceFileLoader(
+            f"layer_entrypoint.{node.unique_id}", str(entrypoint)).load_module()
+
+        # register this module to be pickled, otherwise pickling fails on dynamically created modules
+        cloudpickle.register_pickle_by_value(entrypoint_module)
+
+        return entrypoint_module
 
     def _fetch_dataframe(self, node: ManifestNode, relation: BaseRelation) -> pd.DataFrame:
         """
@@ -201,7 +245,7 @@ class LayerAdapter(object):
 
         return dataframe
 
-    def _load_dataframe(self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame) -> None:
+    def _load_dataframe(self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame) -> Tuple[Dict, agate.Table]:
         """
         Loads the given pandas dataframe into the given node/relation
         """
@@ -219,11 +263,4 @@ class LayerAdapter(object):
             context['load_agate_table'] = lambda: table
             result = MacroGenerator(materialization_macro, context)()
 
-        return result
-
-    # def load_dataframe(self, database, schema, table_name, agate_table,
-    #                    column_override):
-    #     print(agate_table)
-    #     import traceback
-    #     traceback.print_stack()
-    #     return
+        return result, table
