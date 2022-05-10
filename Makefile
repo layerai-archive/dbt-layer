@@ -1,19 +1,17 @@
+INSTALL_STAMP := .install.stamp
+POETRY := $(shell command -v poetry 2> /dev/null)
+
 .DEFAULT_GOAL:=help
 
-.PHONY: dev
-dev: ## Installs development dependencies.
-	@\
-	pip install -r dev-requirements.txt 
-
-.PHONY: install
-install: ## Install the package locally.	
-	@\
-	pip install -e .
+install: $(INSTALL_STAMP)
+$(INSTALL_STAMP): pyproject.toml poetry.lock
+	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
+	$(POETRY) install
+	touch $(INSTALL_STAMP)
 
 .PHONY: test
-test: ## Runs unit tests.
-	@\
-	pytest test/unit
+test: $(INSTALL_STAMP)
+	$(POETRY) run pytest
 
 .PHONY: build
 build: test ## Build the package
@@ -21,6 +19,7 @@ build: test ## Build the package
 .PHONY: clean
 clean: ## Resets development environment.
 	@echo 'cleaning repo...'
+	@rm -rf `poetry env info -p`
 	@rm -f .coverage
 	@rm -rf .eggs/
 	@rm -f .env
@@ -30,10 +29,10 @@ clean: ## Resets development environment.
 	@rm -rf dist/
 	@rm -rf logs/
 	@rm -rf target/
+	@rm .install.stamp
 	@find . -type f -name '*.pyc' -delete
 	@find . -depth -type d -name '__pycache__' -delete
 	@echo 'done.'
-
 
 .PHONY: help
 help: ## Show this help message.

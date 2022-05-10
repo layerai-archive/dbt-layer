@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "dbt-layer-bigquery"
+version = "0.1.0"
+description = "The Layer / BigQuery adapter plugin for dbt"
+authors = ["Layer <info@layer.ai>"]
+readme = "README.md"
+packages = [
+    { include = "dbt" },
+    { include = "layer_dbt" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.7.1,<4.0"
+dbt-core = "~=1.0.5"
+dbt-bigquery = "1.0.0"
+layer-sdk = ">=0.9.355573"
+pandas = [
+    {version = "1.3.5", python = "<3.8"},
+    {version = "~1.4.2", python = ">=3.8"}
+]
+sqlparse = "~=0.4.2"
+
+[tool.poetry.dev-dependencies]
+black = "22.3.0"
+flake8 = "*"
+ipdb = "*"
+mypy = "0.942"
+pytest = "*"
+pytest-dotenv = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
