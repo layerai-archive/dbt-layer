@@ -2,10 +2,10 @@ import decimal
 import pathlib
 from typing import Any, List
 
-import agate
+import agate  # type:ignore
 import numpy as np
-import pandas as pd
-from dbt.clients import agate_helper
+import pandas as pd  # type:ignore
+from dbt.clients import agate_helper  # type:ignore
 
 
 def from_agate_table(table: agate.Table) -> pd.DataFrame:
@@ -32,7 +32,7 @@ def _type_from_value(value: Any) -> Any:
     return None
 
 
-def _from_agate_row(row: agate.Row, column_types) -> List:
+def _from_agate_row(row: agate.Row, column_types: List[Any]) -> List[Any]:
     """
     Converts a given agate row to a plain python row
     """
