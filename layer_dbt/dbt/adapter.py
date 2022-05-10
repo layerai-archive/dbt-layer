@@ -116,31 +116,21 @@ class LayerAdapter(object):
         target_node_relation = self._relation_node_map.get(layer_sql.target_name)
 
         if not source_node_relation:
-            raise RuntimeException(
-                f'Unable to find a source named "{layer_sql.source_name}"'
-            )
+            raise RuntimeException(f'Unable to find a source named "{layer_sql.source_name}"')
         if not target_node_relation:
-            raise RuntimeException(
-                f'Unable to find a target named "{layer_sql.target_name}"'
-            )
+            raise RuntimeException(f'Unable to find a target named "{layer_sql.target_name}"')
 
         source_node, source_relation = source_node_relation
         target_node, target_relation = target_node_relation
 
         if layer_sql.function_type == "build":
-            return self._run_layer_build(
-                source_node, source_relation, target_node, target_relation
-            )
+            return self._run_layer_build(source_node, source_relation, target_node, target_relation)
         elif layer_sql.function_type == "train":
-            return self._run_layer_train(
-                source_node, source_relation, target_node, target_relation
-            )
+            return self._run_layer_train(source_node, source_relation, target_node, target_relation)
         # elif layer_sql.function_type == 'infer':
         #     return self._run_layer_infer(source_node, source_relation, target_node, target_relation)
         else:
-            raise RuntimeException(
-                f'Unknown layer function "{layer_sql.function_type}"'
-            )
+            raise RuntimeException(f'Unknown layer function "{layer_sql.function_type}"')
 
     def _run_layer_build(
         self,
@@ -235,18 +225,14 @@ class LayerAdapter(object):
         entrypoint = Path(node.root_path) / entrypoint
         logger.debug("Loading Layer entrypoint at {}", entrypoint)
 
-        entrypoint_module = SourceFileLoader(
-            f"layer_entrypoint.{node.unique_id}", str(entrypoint)
-        ).load_module()
+        entrypoint_module = SourceFileLoader(f"layer_entrypoint.{node.unique_id}", str(entrypoint)).load_module()
 
         # register this module to be pickled, otherwise pickling fails on dynamically created modules
         cloudpickle.register_pickle_by_value(entrypoint_module)
 
         return entrypoint_module
 
-    def _fetch_dataframe(
-        self, node: ManifestNode, relation: BaseRelation
-    ) -> pd.DataFrame:
+    def _fetch_dataframe(self, node: ManifestNode, relation: BaseRelation) -> pd.DataFrame:
         """
         Fetches all the data from the given node/relation and returns it as a pandas dataframe
         """
@@ -267,13 +253,9 @@ class LayerAdapter(object):
         Loads the given pandas dataframe into the given node/relation
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
-            table = pandas_helper.to_agate_table_with_path(
-                dataframe, Path(tmpdirname) / "data.csv"
-            )
+            table = pandas_helper.to_agate_table_with_path(dataframe, Path(tmpdirname) / "data.csv")
 
-            materialization_macro = self._manifest.macros[
-                "macro.dbt.materialization_seed_default"
-            ]
+            materialization_macro = self._manifest.macros["macro.dbt.materialization_seed_default"]
 
             context = generate_runtime_model_context(node, self.config, self._manifest)
             context["load_agate_table"] = lambda: table

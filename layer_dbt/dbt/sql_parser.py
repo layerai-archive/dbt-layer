@@ -90,9 +90,7 @@ class LayerSQLParser(object):
         # then check the next level
         tokens3 = cls._clean_sql_tokens(tokens2[-1].tokens)
 
-        if not (
-            len(tokens3) >= 2 and isinstance(tokens3[-1], sqlparse.sql.Parenthesis)
-        ):
+        if not (len(tokens3) >= 2 and isinstance(tokens3[-1], sqlparse.sql.Parenthesis)):
             return None
 
         # then check the next level

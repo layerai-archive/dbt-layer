@@ -36,15 +36,10 @@ def _from_agate_row(row: agate.Row, column_types) -> List:
     """
     Converts a given agate row to a plain python row
     """
-    return [
-        column_type(val) if column_type else val
-        for val, column_type in zip(row, column_types)
-    ]
+    return [column_type(val) if column_type else val for val, column_type in zip(row, column_types)]
 
 
-def to_agate_table_with_path(
-    dataframe: pd.DataFrame, path: pathlib.Path
-) -> agate.Table:
+def to_agate_table_with_path(dataframe: pd.DataFrame, path: pathlib.Path) -> agate.Table:
     """
     Converts the given pandas dataframe to an agate table
     """
