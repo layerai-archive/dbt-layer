@@ -94,3 +94,6 @@ venv/
 
 # vscode
 .vscode/
+
+# make outputs
+.install.stamp
