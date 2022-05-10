@@ -1,30 +1,30 @@
 import json
-from pathlib import Path, PurePosixPath
+import tempfile
 from dataclasses import dataclass
+from importlib.machinery import SourceFileLoader
+from pathlib import Path, PurePosixPath
+from types import ModuleType
 from typing import (
-    Optional,
-    Tuple,
-    Callable,
-    Iterable,
-    Type,
-    Dict,
     Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
     List,
     Mapping,
-    Iterator,
-    Union,
+    Optional,
     Set,
+    Tuple,
+    Type,
+    Union,
 )
-from types import ModuleType
-from importlib.machinery import SourceFileLoader
-import tempfile
 
 import agate
-import pandas as pd
 import cloudpickle
-
-from dbt.adapters.protocol import AdapterConfig
+import layer
+import pandas as pd
 from dbt.adapters.base.relation import BaseRelation
+from dbt.adapters.protocol import AdapterConfig
 from dbt.clients.jinja import MacroGenerator
 from dbt.context.providers import generate_runtime_model_context
 from dbt.contracts.connection import AdapterResponse
@@ -36,12 +36,10 @@ from dbt.node_types import NodeType
 from dbt.parser.manifest import process_node
 from dbt.parser.sql import SqlBlockParser
 from dbt.task.sql import SqlCompileRunner
-
-import layer
 from layer.decorators import model as model_decorator
 
-from .sql_parser import LayerSQL, LayerSQLParser
 from . import pandas_helper
+from .sql_parser import LayerSQL, LayerSQLParser
 
 
 logger = AdapterLogger("Layer")
@@ -59,7 +57,8 @@ class LayerMeta(object):
     """
     Layer meta
     """
-    entrypoint: str = 'handler.py'
+
+    entrypoint: str = "handler.py"
     fabric: Optional[str] = None
 
 
@@ -67,6 +66,7 @@ class LayerAdapter(object):
     """
     Layer specific overrides
     """
+
     def __init__(self, config: AdapterConfig):
         super().__init__(config)
         self._manifest_lazy: Optional[Manifest] = None
@@ -82,6 +82,7 @@ class LayerAdapter(object):
         if self._manifest_lazy is None:
             # avoid a circular import
             from dbt.parser.manifest import ManifestLoader
+
             manifest = ManifestLoader.get_full_manifest(self.config)
             self._manifest_lazy = manifest  # type: ignore[assignment]
         return self._manifest_lazy  # type: ignore[return-value]
@@ -122,20 +123,21 @@ class LayerAdapter(object):
         source_node, source_relation = source_node_relation
         target_node, target_relation = target_node_relation
 
-        if layer_sql.function_type == 'build':
+        if layer_sql.function_type == "build":
             return self._run_layer_build(source_node, source_relation, target_node, target_relation)
-        elif layer_sql.function_type == 'train':
+        elif layer_sql.function_type == "train":
             return self._run_layer_train(source_node, source_relation, target_node, target_relation)
         # elif layer_sql.function_type == 'infer':
         #     return self._run_layer_infer(source_node, source_relation, target_node, target_relation)
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql.function_type}"')
 
-
     def _run_layer_build(
-            self,
-            source_node: ManifestNode, source_relation: BaseRelation,
-            target_node: ManifestNode, target_relation: BaseRelation,
+        self,
+        source_node: ManifestNode,
+        source_relation: BaseRelation,
+        target_node: ManifestNode,
+        target_relation: BaseRelation,
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         """
         Build a dbt model using the given python script
@@ -145,26 +147,28 @@ class LayerAdapter(object):
 
         # load source dataframe
         input_df = self._fetch_dataframe(source_node, source_relation)
-        logger.debug('Fetched input dataframe - {}', input_df.shape)
+        logger.debug("Fetched input dataframe - {}", input_df.shape)
 
         # build the dataframe
         output_df = entrypoint_module.main(input_df)
-        logger.debug('Built output dataframe - {}', output_df.shape)
+        logger.debug("Built output dataframe - {}", output_df.shape)
 
         # save the resulting dataframe to the target
         _, table = self._load_dataframe(target_node, target_relation, output_df)
 
         response = LayerAdapterResponse(
-            _message=f'LAYER DATASET INSERT {output_df.shape[0]}',
+            _message=f"LAYER DATASET INSERT {output_df.shape[0]}",
             rows_affected=output_df.shape[0],
-            code='LAYER',
+            code="LAYER",
         )
         return response, table
 
     def _run_layer_train(
-            self,
-            source_node: ManifestNode, source_relation: BaseRelation,
-            target_node: ManifestNode, target_relation: BaseRelation,
+        self,
+        source_node: ManifestNode,
+        source_relation: BaseRelation,
+        target_node: ManifestNode,
+        target_relation: BaseRelation,
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         """
         Train a machine learning model using the given python script and save it as a dbt model
@@ -174,28 +178,28 @@ class LayerAdapter(object):
 
         # load source dataframe
         input_df = self._fetch_dataframe(source_node, source_relation)
-        logger.debug('Fetched input dataframe - {}', input_df.shape)
+        logger.debug("Fetched input dataframe - {}", input_df.shape)
 
         # build the dataframe
         project_name = self.config.credentials.layer_project
-        logger.debug('Training model {}, in project {}', target_node.name, project_name)
+        logger.debug("Training model {}, in project {}", target_node.name, project_name)
         layer.init(project_name)
+
         def training_func():
             return entrypoint_module.main(input_df)
-        trainer = model_decorator(target_node.name)(training_func)()
-        logger.debug('Trained model {}, in project {}', target_node.name, project_name)
 
-        output_df = pd.DataFrame.from_records(
-            [[target_node.name]], columns=['name']
-        )
+        trainer = model_decorator(target_node.name)(training_func)()
+        logger.debug("Trained model {}, in project {}", target_node.name, project_name)
+
+        output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
 
         # save the resulting dataframe to the target
         _, table = self._load_dataframe(target_node, target_relation, output_df)
 
         response = LayerAdapterResponse(
-            _message=f'LAYER MODEL TRAIN {output_df.shape[0]}',
+            _message=f"LAYER MODEL TRAIN {output_df.shape[0]}",
             rows_affected=output_df.shape[0],
-            code='LAYER',
+            code="LAYER",
         )
         return response, table
 
@@ -208,7 +212,7 @@ class LayerAdapter(object):
         then load the module at that path
         """
 
-        layer_meta = LayerMeta(**node.meta.get('layer', {}))
+        layer_meta = LayerMeta(**node.meta.get("layer", {}))
 
         entrypoint = PurePosixPath(layer_meta.entrypoint)
 
@@ -219,10 +223,9 @@ class LayerAdapter(object):
             entrypoint = Path(patch_file_path).parent / entrypoint
 
         entrypoint = Path(node.root_path) / entrypoint
-        logger.debug('Loading Layer entrypoint at {}', entrypoint)
+        logger.debug("Loading Layer entrypoint at {}", entrypoint)
 
-        entrypoint_module = SourceFileLoader(
-            f"layer_entrypoint.{node.unique_id}", str(entrypoint)).load_module()
+        entrypoint_module = SourceFileLoader(f"layer_entrypoint.{node.unique_id}", str(entrypoint)).load_module()
 
         # register this module to be pickled, otherwise pickling fails on dynamically created modules
         cloudpickle.register_pickle_by_value(entrypoint_module)
@@ -233,7 +236,7 @@ class LayerAdapter(object):
         """
         Fetches all the data from the given node/relation and returns it as a pandas dataframe
         """
-        sql = f'select * from {relation.render()}'
+        sql = f"select * from {relation.render()}"
 
         with self.connection_for(node):
             # call super() instead of self to avoid a potential infinite loop
@@ -243,19 +246,19 @@ class LayerAdapter(object):
 
         return dataframe
 
-    def _load_dataframe(self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame) -> Tuple[Dict, agate.Table]:
+    def _load_dataframe(
+        self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame
+    ) -> Tuple[Dict, agate.Table]:
         """
         Loads the given pandas dataframe into the given node/relation
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
-            table = pandas_helper.to_agate_table_with_path(dataframe, Path(tmpdirname) / 'data.csv')
+            table = pandas_helper.to_agate_table_with_path(dataframe, Path(tmpdirname) / "data.csv")
 
-            materialization_macro = self._manifest.macros['macro.dbt.materialization_seed_default']
+            materialization_macro = self._manifest.macros["macro.dbt.materialization_seed_default"]
 
-            context = generate_runtime_model_context(
-                node, self.config, self._manifest
-            )
-            context['load_agate_table'] = lambda: table
+            context = generate_runtime_model_context(node, self.config, self._manifest)
+            context["load_agate_table"] = lambda: table
             result = MacroGenerator(materialization_macro, context)()
 
         return result, table

@@ -13,6 +13,11 @@ $(INSTALL_STAMP): pyproject.toml poetry.lock
 test: $(INSTALL_STAMP)
 	$(POETRY) run pytest
 
+.PHONY: format
+format: $(INSTALL_STAMP)
+	$(POETRY) run isort --profile=black --lines-after-imports=2 .
+	$(POETRY) run black .
+
 .PHONY: build
 build: test ## Build the package
 
