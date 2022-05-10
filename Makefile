@@ -18,6 +18,15 @@ format: $(INSTALL_STAMP)
 	$(POETRY) run isort --profile=black --lines-after-imports=2 .
 	$(POETRY) run black .
 
+
+.PHONY: lint
+lint: $(INSTALL_STAMP)
+	$(POETRY) run isort --profile=black --lines-after-imports=2 --check-only .
+	$(POETRY) run black --check . --diff
+	$(POETRY) run flake8 .
+#	$(POETRY) run mypy .
+	$(POETRY) run bandit -x "./test/*" -r .
+
 .PHONY: build
 build: test ## Build the package
 

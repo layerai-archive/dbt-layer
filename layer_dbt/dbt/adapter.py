@@ -1,23 +1,9 @@
-import json
 import tempfile
 from dataclasses import dataclass
 from importlib.machinery import SourceFileLoader
 from pathlib import Path, PurePosixPath
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Dict, Mapping, Optional, Tuple
 
 import agate
 import cloudpickle
@@ -29,17 +15,12 @@ from dbt.clients.jinja import MacroGenerator
 from dbt.context.providers import generate_runtime_model_context
 from dbt.contracts.connection import AdapterResponse
 from dbt.contracts.graph.manifest import Manifest, ManifestNode
-from dbt.contracts.graph.parsed import ParsedSeedNode
 from dbt.events import AdapterLogger
 from dbt.exceptions import RuntimeException
-from dbt.node_types import NodeType
-from dbt.parser.manifest import process_node
-from dbt.parser.sql import SqlBlockParser
-from dbt.task.sql import SqlCompileRunner
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerSQL, LayerSQLParser
+from .sql_parser import LayerSQLParser
 
 
 logger = AdapterLogger("Layer")
@@ -188,7 +169,7 @@ class LayerAdapter(object):
         def training_func():
             return entrypoint_module.main(input_df)
 
-        trainer = model_decorator(target_node.name)(training_func)()
+        model_decorator(target_node.name)(training_func)()
         logger.debug("Trained model {}, in project {}", target_node.name, project_name)
 
         output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
@@ -236,7 +217,8 @@ class LayerAdapter(object):
         """
         Fetches all the data from the given node/relation and returns it as a pandas dataframe
         """
-        sql = f"select * from {relation.render()}"
+        # TODO: fix Possible SQL injection vector through string-based query construction. and remove nosec
+        sql = f"select * from {relation.render()}"  # nosec
 
         with self.connection_for(node):
             # call super() instead of self to avoid a potential infinite loop

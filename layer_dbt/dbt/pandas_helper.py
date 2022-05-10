@@ -1,6 +1,6 @@
 import decimal
 import pathlib
-from typing import Any, Iterator, List, Set, Union
+from typing import Any, List
 
 import agate
 import numpy as np
