@@ -1,17 +1,10 @@
 import decimal
 import pathlib
-from typing import (
-    Any,
-    List,
-    Iterator,
-    Union,
-    Set,
-)
+from typing import Any, Iterator, List, Set, Union
 
 import agate
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 from dbt.clients import agate_helper
 
 
@@ -24,9 +17,7 @@ def from_agate_table(table: agate.Table) -> pd.DataFrame:
         rows = [_from_agate_row(row, column_types) for row in table.rows]
     else:
         rows = []
-    return pd.DataFrame.from_records(
-        rows, columns=table.column_names
-    )
+    return pd.DataFrame.from_records(rows, columns=table.column_names)
 
 
 def _type_from_value(value: Any) -> Any:
@@ -45,11 +36,15 @@ def _from_agate_row(row: agate.Row, column_types) -> List:
     """
     Converts a given agate row to a plain python row
     """
-    return [column_type(val) if column_type else val
-            for val, column_type in zip(row, column_types)]
+    return [
+        column_type(val) if column_type else val
+        for val, column_type in zip(row, column_types)
+    ]
 
 
-def to_agate_table_with_path(dataframe: pd.DataFrame, path: pathlib.Path) -> agate.Table:
+def to_agate_table_with_path(
+    dataframe: pd.DataFrame, path: pathlib.Path
+) -> agate.Table:
     """
     Converts the given pandas dataframe to an agate table
     """
