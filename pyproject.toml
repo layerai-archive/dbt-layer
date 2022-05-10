@@ -27,6 +27,8 @@ ipdb = "*"
 mypy = "0.942"
 pytest = "*"
 pytest-dotenv = "*"
+isort = "^5.10.1"
+bandit = "^1.7.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
