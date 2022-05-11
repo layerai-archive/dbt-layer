@@ -2,7 +2,7 @@ name: Check
 on: push
 
 jobs:
-  ci:
+  check:
     strategy:
       fail-fast: false
       matrix:
@@ -17,5 +17,11 @@ jobs:
         uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: 1.1.13
+      - name: Cache poetry virtualenvs
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/pypoetry/virtualenvs
+          key: poetry-vevns-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Run check
         run: make check
