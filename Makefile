@@ -27,6 +27,9 @@ lint: $(INSTALL_STAMP)
 	$(POETRY) run mypy .
 	$(POETRY) run bandit -x "./test/*" -r .
 
+.PHONY: check
+check: test lint
+
 .PHONY: build
 build: test ## Build the package
 
