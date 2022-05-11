@@ -30,8 +30,16 @@ lint: $(INSTALL_STAMP)
 .PHONY: check
 check: test lint
 
-.PHONY: build
-build: test ## Build the package
+.PHONY: publish
+publish:
+	@test $${PATCH_VERSION?PATCH_VERSION expected}
+	@test $${PYPI_USER?PYPI_USER expected}
+	@test $${PYPI_PASSWORD?PYPI_PASSWORD expected}
+	$(eval CURRENT_VERSION := $(shell $(POETRY) version --short))
+	$(eval PARTIAL_VERSION=$(shell echo $(CURRENT_VERSION) | grep -Po '.*(?=\.)'))
+	$(POETRY) version $(PARTIAL_VERSION).$(PATCH_VERSION)
+	$(POETRY) publish --build --username $(PYPI_USER) --password $(PYPI_PASSWORD)
+	$(POETRY) version $(CURRENT_VERSION)
 
 .PHONY: clean
 clean: ## Resets development environment.
