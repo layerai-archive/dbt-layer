@@ -23,7 +23,7 @@ class LayerSQL(object):
 
 class LayerSQLParser(object):
     @staticmethod
-    def _clean_sql_tokens(tokens: List[sqlparse.Token]) -> List[sqlparse.Token]:
+    def _clean_sql_tokens(tokens: List[sqlparse.sql.Token]) -> List[sqlparse.sql.Token]:
         """
         Removes whitespace and semicolon punctuation tokens
         """
