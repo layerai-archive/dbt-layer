@@ -1,19 +1,6 @@
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import List, Optional
 
-import sqlparse
+import sqlparse  # type:ignore
 
 
 class LayerSQL(object):
@@ -21,12 +8,12 @@ class LayerSQL(object):
     A parsed Layer SQL statement
     """
 
-    def __init__(self, function_type: str, source_name: str, target_name: str):
+    def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
         self.function_type = function_type
         self.source_name = source_name
         self.target_name = target_name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<LayerSQL function_type:{self.function_type}"
             f" source_name:{self.source_name}"
@@ -36,7 +23,7 @@ class LayerSQL(object):
 
 class LayerSQLParser(object):
     @staticmethod
-    def _clean_sql_tokens(tokens):
+    def _clean_sql_tokens(tokens: List[sqlparse.Token]) -> List[sqlparse.Token]:
         """
         Removes whitespace and semicolon punctuation tokens
         """
@@ -54,7 +41,7 @@ class LayerSQLParser(object):
         ]
 
     @classmethod
-    def parse(cls, sql) -> Optional[LayerSQL]:
+    def parse(cls, sql: str) -> Optional[LayerSQL]:
         """
         returns None if not a layer SQL statement
         returns an instance of LayerSQL if a valid layer SQL statement

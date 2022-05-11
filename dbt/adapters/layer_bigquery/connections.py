@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from dbt.adapters.bigquery.connections import (
+from dbt.adapters.bigquery.connections import (  # type:ignore
     BigQueryConnectionManager,
     BigQueryCredentials,
 )
@@ -15,7 +15,7 @@ class LayerBigQueryCredentials(BigQueryCredentials):
     layer_project: Optional[str] = None
 
     @property
-    def type(self):
+    def type(self) -> str:
         return "layer_bigquery"
 
 

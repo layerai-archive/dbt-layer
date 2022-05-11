@@ -1,45 +1,27 @@
-import json
 import tempfile
 from dataclasses import dataclass
 from importlib.machinery import SourceFileLoader
 from pathlib import Path, PurePosixPath
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Dict, Mapping, Optional, Tuple
 
-import agate
-import cloudpickle
+import agate  # type: ignore
+import cloudpickle  # type: ignore
 import layer
-import pandas as pd
-from dbt.adapters.base.relation import BaseRelation
-from dbt.adapters.protocol import AdapterConfig
-from dbt.clients.jinja import MacroGenerator
-from dbt.context.providers import generate_runtime_model_context
-from dbt.contracts.connection import AdapterResponse
-from dbt.contracts.graph.manifest import Manifest, ManifestNode
-from dbt.contracts.graph.parsed import ParsedSeedNode
-from dbt.events import AdapterLogger
-from dbt.exceptions import RuntimeException
-from dbt.node_types import NodeType
-from dbt.parser.manifest import process_node
-from dbt.parser.sql import SqlBlockParser
-from dbt.task.sql import SqlCompileRunner
+import pandas as pd  # type: ignore
+from dbt.adapters.base.impl import BaseAdapter  # type: ignore
+from dbt.adapters.base.relation import BaseRelation  # type: ignore
+from dbt.adapters.protocol import AdapterConfig  # type: ignore
+from dbt.clients.jinja import MacroGenerator  # type: ignore
+from dbt.context.providers import generate_runtime_model_context  # type: ignore
+from dbt.contracts.connection import AdapterResponse  # type: ignore
+from dbt.contracts.graph.manifest import Manifest, ManifestNode  # type: ignore
+from dbt.events import AdapterLogger  # type: ignore
+from dbt.exceptions import RuntimeException  # type: ignore
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerSQL, LayerSQLParser
+from .sql_parser import LayerSQLParser
 
 
 logger = AdapterLogger("Layer")
@@ -62,7 +44,7 @@ class LayerMeta(object):
     fabric: Optional[str] = None
 
 
-class LayerAdapter(object):
+class LayerAdapter(BaseAdapter):
     """
     Layer specific overrides
     """
@@ -81,11 +63,11 @@ class LayerAdapter(object):
     def load_manifest(self) -> Manifest:
         if self._manifest_lazy is None:
             # avoid a circular import
-            from dbt.parser.manifest import ManifestLoader
+            from dbt.parser.manifest import ManifestLoader  # type: ignore
 
             manifest = ManifestLoader.get_full_manifest(self.config)
-            self._manifest_lazy = manifest  # type: ignore[assignment]
-        return self._manifest_lazy  # type: ignore[return-value]
+            self._manifest_lazy = manifest
+        return self._manifest_lazy
 
     @property
     def _relation_node_map(self) -> Mapping[str, ManifestNode]:
@@ -101,10 +83,10 @@ class LayerAdapter(object):
                 relation = self.Relation.create_from_node(self.config, node)
                 relation_node_map[relation.render()] = (node, relation)
 
-            self._relation_node_map_lazy = relation_node_map  # type: ignore[assignment]
-        return self._relation_node_map_lazy  # type: ignore[return-value]
+            self._relation_node_map_lazy = relation_node_map
+        return self._relation_node_map_lazy
 
-    def execute(self, sql, **kwargs):
+    def execute(self, sql: str, **kwargs: Any) -> Tuple[LayerAdapterResponse, agate.Table]:
         """
         if the given `sql` represents a Layer build or train, run Layer
         otherwise, pass the `execute` call to the underlying class
@@ -185,10 +167,10 @@ class LayerAdapter(object):
         logger.debug("Training model {}, in project {}", target_node.name, project_name)
         layer.init(project_name)
 
-        def training_func():
+        def training_func() -> Any:
             return entrypoint_module.main(input_df)
 
-        trainer = model_decorator(target_node.name)(training_func)()
+        model_decorator(target_node.name)(training_func)()
         logger.debug("Trained model {}, in project {}", target_node.name, project_name)
 
         output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
@@ -220,9 +202,9 @@ class LayerAdapter(object):
             entrypoint = entrypoint.relative_to(entrypoint.root)
         else:
             _, patch_file_path = node.patch_path.split("://")
-            entrypoint = Path(patch_file_path).parent / entrypoint
+            entrypoint = PurePosixPath(patch_file_path).parent / entrypoint
 
-        entrypoint = Path(node.root_path) / entrypoint
+        entrypoint = PurePosixPath(node.root_path) / entrypoint
         logger.debug("Loading Layer entrypoint at {}", entrypoint)
 
         entrypoint_module = SourceFileLoader(f"layer_entrypoint.{node.unique_id}", str(entrypoint)).load_module()
@@ -236,7 +218,8 @@ class LayerAdapter(object):
         """
         Fetches all the data from the given node/relation and returns it as a pandas dataframe
         """
-        sql = f"select * from {relation.render()}"
+        # TODO: fix Possible SQL injection vector through string-based query construction. and remove nosec
+        sql = f"select * from {relation.render()}"  # nosec
 
         with self.connection_for(node):
             # call super() instead of self to avoid a potential infinite loop
@@ -248,7 +231,7 @@ class LayerAdapter(object):
 
     def _load_dataframe(
         self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame
-    ) -> Tuple[Dict, agate.Table]:
+    ) -> Tuple[Dict[Any, Any], agate.Table]:
         """
         Loads the given pandas dataframe into the given node/relation
         """
