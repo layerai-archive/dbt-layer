@@ -5,6 +5,7 @@ from typing import Any, List
 import agate  # type:ignore
 import numpy as np
 import pandas as pd  # type:ignore
+
 from dbt.clients import agate_helper  # type:ignore
 
 

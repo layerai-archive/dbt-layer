@@ -31,6 +31,7 @@ isort = "^5.10.1"
 bandit = "^1.7.4"
 toml = "^0.10.2"
 types-toml = "^0.10.7"
+pytest-cov = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -38,3 +39,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 120
+
+[tool.coverage.run]
+omit = [
+    "test/*",
+]
