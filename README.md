@@ -54,3 +54,8 @@ Every time you change dependencies, you should expect a corresponding change to 
 ```
     poetry run <...>
 ```
+
+#### How to update a dependency
+```
+    poetry update foo
+```
