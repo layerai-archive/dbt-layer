@@ -6,7 +6,7 @@ authors = ["Layer <info@layer.ai>"]
 readme = "README.md"
 packages = [
     { include = "dbt" },
-    { include = "layer_dbt" },
+    { include = "common" },
 ]
 
 [tool.poetry.dependencies]
