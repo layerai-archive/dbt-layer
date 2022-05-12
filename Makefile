@@ -3,24 +3,24 @@ POETRY := $(shell command -v poetry 2> /dev/null)
 
 .DEFAULT_GOAL:=help
 
-install: $(INSTALL_STAMP)
+install: $(INSTALL_STAMP) ## Install dependencies
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
 	$(POETRY) install
 	touch $(INSTALL_STAMP)
 
 .PHONY: test
-test: $(INSTALL_STAMP)
+test: $(INSTALL_STAMP) ## Run unit tests
 	$(POETRY) run pytest test --cov .
 
 .PHONY: format
-format: $(INSTALL_STAMP)
+format: $(INSTALL_STAMP) ## Apply formatters
 	$(POETRY) run isort --profile=black --lines-after-imports=2 .
 	$(POETRY) run black .
 
 
 .PHONY: lint
-lint: $(INSTALL_STAMP)
+lint: $(INSTALL_STAMP) ## Run all linters
 	$(POETRY) run isort --profile=black --lines-after-imports=2 --check-only .
 	$(POETRY) run black --check . --diff
 	$(POETRY) run flake8 .
@@ -28,10 +28,10 @@ lint: $(INSTALL_STAMP)
 	$(POETRY) run bandit -x "./test/*" -r .
 
 .PHONY: check
-check: test lint
+check: test lint ## Run test and lint
 
-.PHONY: publish
-publish:
+.PHONY: publish 
+publish: ## Publish to PyPi - should only run in CI
 	@test $${PATCH_VERSION?PATCH_VERSION expected}
 	@test $${PYPI_USER?PYPI_USER expected}
 	@test $${PYPI_PASSWORD?PYPI_PASSWORD expected}
@@ -45,18 +45,15 @@ publish:
 clean: ## Resets development environment.
 	@echo 'cleaning repo...'
 	@rm -rf `poetry env info -p`
+	@rm -rf .mypy_cache
+	@rm -rf .pytest_cache
 	@rm -f .coverage
-	@rm -rf .eggs/
-	@rm -f .env
-	@rm -rf .tox/
-	@rm -rf build/
-	@rm -rf dbt.egg-info/
+	@find . -type d -name '*.egg-info' | xargs rm -rf {};
+	@find . -depth -type d -name '*.egg-info' -delete
 	@rm -rf dist/
-	@rm -rf logs/
-	@rm -rf target/
-	@rm .install.stamp
+	@rm -f .install.stamp
 	@find . -type f -name '*.pyc' -delete
-	@find . -depth -type d -name '__pycache__' -delete
+	@find . -type d -name "__pycache__" | xargs rm -rf {};
 	@echo 'done.'
 
 .PHONY: help
