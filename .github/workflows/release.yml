@@ -1,0 +1,33 @@
+name: Release
+on:
+  workflow_run:
+    workflows:
+      - Check
+    branches:
+      - main
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: ubuntu-18.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Setup poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.13
+      - name: Cache poetry virtualenvs
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/pypoetry/virtualenvs
+          key: poetry-vevns-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+      - name: Publish
+        run: make publish PYPI_USER=${{ secrets.PYPI_USER }} PYPI_PASSWORD=${{ secrets.PYPI_PASSWORD }} PATCH_VERSION=${GITHUB_RUN_ID}
