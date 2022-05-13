@@ -16,8 +16,8 @@ class LayerSQL(object):
     def __repr__(self) -> str:
         return (
             f"<LayerSQL function_type:{self.function_type}"
-            f" source_name:{self.source_name}"
-            f" target_name:{self.target_name}>"
+            + f" source_name:{self.source_name}"
+            + f" target_name:{self.target_name}>"
         )
 
 
