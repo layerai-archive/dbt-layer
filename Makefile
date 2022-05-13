@@ -41,6 +41,9 @@ publish: ## Publish to PyPi - should only run in CI
 	$(POETRY) publish --build --username $(PYPI_USER) --password $(PYPI_PASSWORD)
 	$(POETRY) version $(CURRENT_VERSION)
 
+build: test 
+	$(POETRY) build
+
 .PHONY: clean
 clean: ## Resets development environment.
 	@echo 'cleaning repo...'
