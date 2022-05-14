@@ -1,33 +1,62 @@
 name: Release
 on:
-  workflow_run:
-    workflows:
-      - Check
-    branches:
-      - main
-    types:
-      - completed
+  push:
+    branches: ['main']
 
 jobs:
-  publish:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8]
     runs-on: ubuntu-18.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python-version }}
       - name: Setup poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: 1.1.13
       - name: Cache poetry virtualenvs
-        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/pypoetry/virtualenvs
+          key: poetry-vevns-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+      - name: Run check
+        run: make check
+  publish:
+    needs: [ check ]
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch origin ${{ github.event.before }}
+      - name: Get changes that will affect the package
+        id: changed-files
+        uses: tj-actions/changed-files@v19.1
+        with:
+          base_sha: ${{ github.event.before }}
+          files: |
+            common/**
+            dbt/**
+            DESCRIPTION.md
+            pyproject.toml
+      - uses: actions/setup-python@v2
+        if: steps.changed-files.outputs.any_changed == 'true'
+        with:
+          python-version: 3.8
+      - name: Setup poetry
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.13
+      - name: Cache poetry virtualenvs
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/cache@v3
         with:
           path: /home/runner/.cache/pypoetry/virtualenvs
           key: poetry-vevns-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Publish
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: make publish PYPI_USER=${{ secrets.PYPI_USER }} PYPI_PASSWORD=${{ secrets.PYPI_PASSWORD }} PATCH_VERSION=${GITHUB_RUN_ID}
