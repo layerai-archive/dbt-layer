@@ -50,8 +50,6 @@ jobs:
           make install
           DEPENDENCIES=$(poetry run python build_scripts/get_package_dependencies.py)
           echo "::set-output name=paths::${DEPENDENCIES}"
-      - run: |
-          echo "${{ steps.deps.outputs.paths}}"
       - name: Get changes that will affect the package
         id: changed-files
         uses: tj-actions/changed-files@v19.1
