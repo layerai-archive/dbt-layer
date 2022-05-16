@@ -1,5 +1,7 @@
 name: Check
-on: push
+on:
+  push:
+    branches-ignore: ['main']
 
 jobs:
   check:
@@ -18,7 +20,6 @@ jobs:
         with:
           poetry-version: 1.1.13
       - name: Cache poetry virtualenvs
-        id: cache-primes
         uses: actions/cache@v3
         with:
           path: /home/runner/.cache/pypoetry/virtualenvs
