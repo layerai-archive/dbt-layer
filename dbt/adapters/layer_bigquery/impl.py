@@ -1,5 +1,6 @@
-from common.adapter import LayerAdapter
 from dbt.adapters.bigquery.impl import BigQueryAdapter  # type:ignore
+
+from common.adapter import LayerAdapter
 
 from .connections import LayerBigQueryConnectionManager
 
