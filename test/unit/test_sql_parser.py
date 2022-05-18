@@ -44,7 +44,8 @@ def test_sql_parser_with_predict_argument_column_does_not_exist_select_columns()
   OPTIONS()
   as (
     SELECT customer_id, product_id, customer_age,
-    layer.predict("layer/ecommerce/models/buy_it_again:latest", ARRAY[customer_id, product_id, customer_region])    FROM `layer-bigquery`.`ecommerce`.`customers`
+    layer.predict("layer/ecommerce/models/buy_it_again:latest", ARRAY[customer_id, product_id, customer_region])
+    FROM `layer-bigquery`.`ecommerce`.`customers`
   );
 """
     parsed = LayerSQLParser().parse(sql=sql)
