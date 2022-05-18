@@ -91,28 +91,28 @@ class LayerAdapter(BaseAdapter):
         if the given `sql` represents a Layer build or train, run Layer
         otherwise, pass the `execute` call to the underlying class
         """
-        layer_sql = LayerSQLParser.parse(sql)
-        if layer_sql is None:
+        layer_sql_function = LayerSQLParser.parse(sql)
+        if layer_sql_function is None:
             return super().execute(sql, **kwargs)
-        source_node_relation = self._relation_node_map.get(layer_sql.source_name)
-        target_node_relation = self._relation_node_map.get(layer_sql.target_name)
+        source_node_relation = self._relation_node_map.get(layer_sql_function.source_name)
+        target_node_relation = self._relation_node_map.get(layer_sql_function.target_name)
 
         if not source_node_relation:
-            raise RuntimeException(f'Unable to find a source named "{layer_sql.source_name}"')
+            raise RuntimeException(f'Unable to find a source named "{layer_sql_function.source_name}"')
         if not target_node_relation:
-            raise RuntimeException(f'Unable to find a target named "{layer_sql.target_name}"')
+            raise RuntimeException(f'Unable to find a target named "{layer_sql_function.target_name}"')
 
         source_node, source_relation = source_node_relation
         target_node, target_relation = target_node_relation
 
-        if layer_sql.function_type == "build":
+        if layer_sql_function.function_type == "build":
             return self._run_layer_build(source_node, source_relation, target_node, target_relation)
-        elif layer_sql.function_type == "train":
+        elif layer_sql_function.function_type == "train":
             return self._run_layer_train(source_node, source_relation, target_node, target_relation)
-        # elif layer_sql.function_type == 'infer':
-        #     return self._run_layer_infer(source_node, source_relation, target_node, target_relation)
+        elif layer_sql_function.function_type == "predict":
+            return self._run_layer_predict(source_node, source_relation, target_node, target_relation)
         else:
-            raise RuntimeException(f'Unknown layer function "{layer_sql.function_type}"')
+            raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
 
     def _run_layer_build(
         self,
@@ -184,6 +184,15 @@ class LayerAdapter(BaseAdapter):
             code="LAYER",
         )
         return response, table
+
+    def _run_layer_predict(
+        self,
+        source_node: ManifestNode,
+        source_relation: BaseRelation,
+        target_node: ManifestNode,
+        target_relation: BaseRelation,
+    ) -> Tuple[LayerAdapterResponse, agate.Table]:
+        raise NotImplementedError("Prediction not implemented yet!")
 
     def _get_layer_entrypoint_module(self, node: ManifestNode) -> ModuleType:
         """

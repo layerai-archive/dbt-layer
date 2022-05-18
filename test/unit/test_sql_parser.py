@@ -1,7 +1,7 @@
-from common.sql_parser import LayerSQL, LayerSQLParser
+from common.sql_parser import LayerSqlFunction, LayerSQLParser
 
 
-def test_sql_parser() -> None:
+def test_sql_parser_with_build() -> None:
     sql = """
   create or replace table `layer-bigquery`.`titanic`.`passenger_features`
   OPTIONS()
@@ -11,7 +11,25 @@ def test_sql_parser() -> None:
 """
     parsed = LayerSQLParser.parse(sql=sql)
     assert parsed
-    assert isinstance(parsed, LayerSQL)
+    assert isinstance(parsed, LayerSqlFunction)
     assert parsed.function_type == "build"
     assert parsed.source_name == "`layer-bigquery`.`titanic`.`passengers`"
     assert parsed.target_name == "`layer-bigquery`.`titanic`.`passenger_features`"
+
+
+def test_sql_parser_with_predict() -> None:
+    sql = """
+  create or replace table `layer-bigquery`.`ecommerce`.`customer_features`
+  OPTIONS()
+  as (
+    SELECT customer_id, product_id,
+    layer.predict("layer/ecommerce/models/buy_it_again:latest", ARRAY[customer_id, product_id]) as likely_to_buy_score
+    FROM `layer-bigquery`.`ecommerce`.`customers`
+  );
+"""
+    parsed = LayerSQLParser.parse(sql=sql)
+    assert parsed
+    assert isinstance(parsed, LayerSqlFunction)
+    assert parsed.function_type == "predict"
+    assert parsed.source_name == "`layer-bigquery`.`ecommerce`.`customers`"
+    assert parsed.target_name == "`layer-bigquery`.`ecommerce`.`customer_features`"

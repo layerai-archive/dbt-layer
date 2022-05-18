@@ -3,7 +3,7 @@ from typing import List, Optional
 import sqlparse  # type:ignore
 
 
-class LayerSQL(object):
+class LayerSqlFunction(object):
     """
     A parsed Layer SQL statement
     """
@@ -21,9 +21,25 @@ class LayerSQL(object):
         )
 
 
+class LayerPredictFunction(LayerSqlFunction):
+    def __init__(
+        self, function_type: str, source_name: str, target_name: str, columns_for_prediction: List[str]
+    ) -> None:
+        super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
+        self.columns_for_prediction = columns_for_prediction
+
+
+class LayerBuildFunction(LayerSqlFunction):
+    pass
+
+
+class LayerTrainFunction(LayerSqlFunction):
+    pass
+
+
 class LayerSQLParser:
     @classmethod
-    def parse(cls, sql: str) -> Optional[LayerSQL]:
+    def parse(cls, sql: str) -> Optional[LayerSqlFunction]:
         """
         returns None if not a layer SQL statement
         returns an instance of LayerSQL if a valid layer SQL statement
@@ -38,10 +54,8 @@ class LayerSQLParser:
         # check the top level statement
         if not (
             len(tokens1) == 3
-            and tokens1[0].ttype == sqlparse.tokens.DDL
-            and tokens1[0].value == "create or replace"
-            and tokens1[1].ttype == sqlparse.tokens.Keyword
-            and tokens1[1].value == "table"
+            and cls.is_keyword(tokens1[0], "create or replace")
+            and cls.is_keyword(tokens1[1], "table")
             and isinstance(tokens1[2], sqlparse.sql.Identifier)
             and tokens1[2].is_group
         ):
@@ -65,25 +79,14 @@ class LayerSQLParser:
         tokens4 = cls._clean_sql_tokens(tokens3[-1].tokens)
         if not (
             len(tokens4) == 4
-            and tokens4[0].ttype == sqlparse.tokens.DML
-            and tokens4[0].value == "select"
-            and isinstance(tokens4[1], sqlparse.sql.Identifier)
-            and isinstance(tokens4[3], sqlparse.sql.Identifier)
+            and cls.is_keyword(tokens4[0], "select")
+            and (cls.is_identifierlist(tokens4[1]) or cls.is_identifier(tokens4[1]))
+            and cls.is_identifier(tokens4[3])
         ):
             return None
 
-        # then check the layer
-        tokens5 = tokens4[1].tokens
-        if not (
-            len(tokens5) == 3
-            and tokens5[0].value == "layer"
-            and tokens5[0].ttype == sqlparse.tokens.Name
-            and tokens5[1].ttype == sqlparse.tokens.Punctuation
-            and isinstance(tokens5[2], sqlparse.sql.Function)
-        ):
-            return None
-
-        function = tokens5[2].tokens
+        tokens5 = cls._clean_sql_tokens(tokens4[1].tokens)
+        function = cls.get_layer_function(tokens5)
         # get the source name
         source_name = ""
         for token in tokens4[3].tokens:
@@ -91,7 +94,7 @@ class LayerSQLParser:
                 break
             source_name += token.value
 
-        return LayerSQL(function[0].value, source_name, target_name)
+        return LayerSqlFunction(function[0].value, source_name, target_name)
 
     @classmethod
     def _clean_sql_tokens(cls, tokens: List[sqlparse.sql.Token]) -> List[sqlparse.sql.Token]:
@@ -110,3 +113,32 @@ class LayerSQLParser:
                 and ix == len(tokens) - 1
             )
         ]
+
+    def is_keyword(token: sqlparse.sql.Token, keyword: str) -> bool:
+        return token.is_keyword and token.value.upper() == keyword.upper()
+
+    def is_identifier(token: sqlparse.sql.Token) -> bool:
+        return isinstance(token, sqlparse.sql.Identifier)
+
+    def is_identifierlist(token: sqlparse.sql.Token) -> bool:
+        return isinstance(token, sqlparse.sql.IdentifierList)
+
+    def is_function(token: sqlparse.sql.Token) -> bool:
+        return isinstance(token, sqlparse.sql.Function)
+
+    @classmethod
+    def get_layer_function(
+        cls, tokens: List[sqlparse.sql.Token], seen_layer_prefix: bool = False
+    ) -> sqlparse.sql.Token:
+        layer_function = None
+        for token in tokens:
+            if token.ttype == sqlparse.tokens.Punctuation:
+                continue
+            if token.ttype == sqlparse.tokens.Name and token.value == "layer":
+                seen_layer_prefix = True
+                continue
+            if cls.is_function(token) and seen_layer_prefix:
+                return token
+            if cls.is_identifier(token):
+                layer_function = cls.get_layer_function(token.tokens, seen_layer_prefix=seen_layer_prefix)
+        return layer_function
