@@ -91,7 +91,7 @@ class LayerAdapter(BaseAdapter):
         if the given `sql` represents a Layer build or train, run Layer
         otherwise, pass the `execute` call to the underlying class
         """
-        layer_sql_function = LayerSQLParser.parse(sql)
+        layer_sql_function = LayerSQLParser().parse(sql)
         if layer_sql_function is None:
             return super().execute(sql, **kwargs)
         source_node_relation = self._relation_node_map.get(layer_sql_function.source_name)
