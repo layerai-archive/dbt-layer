@@ -21,7 +21,7 @@ from dbt.exceptions import RuntimeException  # type: ignore
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerSQLParser
+from .sql_parser import LayerSqlFunction, LayerSQLParser
 
 
 logger = AdapterLogger("Layer")
@@ -42,6 +42,7 @@ class LayerMeta(object):
 
     entrypoint: str = "handler.py"
     fabric: Optional[str] = None
+    prediction_model: Optional[str] = None
 
 
 class LayerAdapter(BaseAdapter):
@@ -110,7 +111,9 @@ class LayerAdapter(BaseAdapter):
         elif layer_sql_function.function_type == "train":
             return self._run_layer_train(source_node, source_relation, target_node, target_relation)
         elif layer_sql_function.function_type == "predict":
-            return self._run_layer_predict(source_node, source_relation, target_node, target_relation)
+            return self._run_layer_predict(
+                layer_sql_function, source_node, source_relation, target_node, target_relation
+            )
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
 
@@ -185,14 +188,46 @@ class LayerAdapter(BaseAdapter):
         )
         return response, table
 
+    @staticmethod
+    def _get_layer_meta(node: ManifestNode) -> LayerMeta:
+        return LayerMeta(**node.meta.get("layer", {}))
+
     def _run_layer_predict(
         self,
+        layer_sql_function: LayerSqlFunction,
         source_node: ManifestNode,
         source_relation: BaseRelation,
         target_node: ManifestNode,
         target_relation: BaseRelation,
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
-        raise NotImplementedError("Prediction not implemented yet!")
+        try:
+            layer_meta = self._get_layer_meta(target_node)
+            assert layer_meta.prediction_model
+
+            # load source dataframe
+            input_df = self._fetch_dataframe(source_node, source_relation)
+            input_df = input_df.drop(columns=["Survived"])
+            logger.debug("Fetched input dataframe - {}", input_df.shape)
+            layer_model_def = layer.get_model(layer_meta.prediction_model)
+            layer_model = layer_model_def.get_train()
+            predictions = layer_model.predict(input_df)
+            predictions = pd.DataFrame(predictions, columns=["prediction"])
+            logger.debug("Prediction dataframe - {}", predictions.shape)
+
+            # save the resulting dataframe to the target
+            _, table = self._load_dataframe(target_node, target_relation, predictions)
+
+            response = LayerAdapterResponse(
+                _message=f"LAYER DATASET INSERT {predictions.shape[0]}",
+                rows_affected=predictions.shape[0],
+                code="LAYER",
+            )
+            return response, table
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            raise e
 
     def _get_layer_entrypoint_module(self, node: ManifestNode) -> ModuleType:
         """
@@ -245,7 +280,8 @@ class LayerAdapter(BaseAdapter):
         Loads the given pandas dataframe into the given node/relation
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
-            table = pandas_helper.to_agate_table_with_path(dataframe, Path(tmpdirname) / "data.csv")
+            file = Path(tmpdirname) / "data.csv"
+            table = pandas_helper.to_agate_table_with_path(dataframe, file)
 
             materialization_macro = self._manifest.macros["macro.dbt.materialization_seed_default"]
 

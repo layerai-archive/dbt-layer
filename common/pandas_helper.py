@@ -39,11 +39,27 @@ def _from_agate_row(row: agate.Row, column_types: List[Any]) -> List[Any]:
     return [column_type(val) if column_type else val for val, column_type in zip(row, column_types)]
 
 
+def _only_whole_numbers(series: pd.Series) -> bool:
+    return series.apply(lambda x: x.is_integer()).all()
+
+
+def _dataframe_to_csv(df: pd.DataFrame, path: pathlib.Path) -> None:
+    """
+    Type conversion necessary for the edge case where the pandas column is of float type but no values have a fraction.
+    In this case the BQ adapter will infer from the agate table object the BQ column type to be an integer
+    but it will fail to parse the csv containing float numbers.
+    """
+    for column in df.columns:
+        if df.dtypes[column] == np.dtype(np.float64) and _only_whole_numbers(df[column]):
+            df = df.astype({column: np.int64})
+    df.to_csv(path, index=False)
+
+
 def to_agate_table_with_path(dataframe: pd.DataFrame, path: pathlib.Path) -> agate.Table:
     """
     Converts the given pandas dataframe to an agate table
     """
-    dataframe.to_csv(path, index=False)
+    _dataframe_to_csv(dataframe, path)
     table = agate_helper.from_csv(path, [])
     table.original_abspath = path
     return table
