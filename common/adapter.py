@@ -220,7 +220,7 @@ class LayerAdapter(BaseAdapter):
             _, table = self._load_dataframe(target_node, target_relation, result_df)
 
             response = LayerAdapterResponse(
-                _message=f"LAYER DATASET INSERT {predictions.shape[0]}",
+                _message=f"LAYER PREDICTION INSERT {predictions.shape[0]}",
                 rows_affected=predictions.shape[0],
                 code="LAYER",
             )
