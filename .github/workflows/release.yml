@@ -57,6 +57,12 @@ jobs:
           base_sha: ${{ github.event.before }}
           files: ${{ steps.deps.outputs.paths }}
           files_separator: ','
+      - name: Check lockfile
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          make install
+          poetry lock --no-update
+          [ -z "$(git status --porcelain=v1 2>/dev/null)" ] || (echo "Lock file is not up to date, please run 'poetry lock --no-update'" && exit 1)
       - name: Publish
         if: steps.changed-files.outputs.any_changed == 'true'
         run: make publish PYPI_USER=${{ secrets.PYPI_USER }} PYPI_PASSWORD=${{ secrets.PYPI_PASSWORD }} PATCH_VERSION=${GITHUB_RUN_ID}
