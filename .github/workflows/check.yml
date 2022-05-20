@@ -29,7 +29,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/.cache/pypoetry/virtualenvs
-          key: poetry-vevns-${{ runner.os }}-3.8-${{ hashFiles('poetry.lock') }}
+          key: poetry-venvs-${{ runner.os }}-3.8-${{ hashFiles('poetry.lock') }}
+          restore-keys: poetry-venvs-${{ runner.os }}-3.8-
       - name: Check lockfile
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
@@ -55,6 +56,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/.cache/pypoetry/virtualenvs
-          key: poetry-vevns-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+          key: poetry-venvs-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: poetry-venvs-${{ runner.os }}-${{ matrix.python-version }}-
       - name: Run check
         run: make check
