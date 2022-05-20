@@ -35,7 +35,7 @@ class LayerAdapterResponse(AdapterResponse):
 
 
 @dataclass
-class LayerMeta(object):
+class LayerMeta:
     """
     Layer meta
     """
@@ -44,7 +44,7 @@ class LayerMeta(object):
     fabric: Optional[str] = None
 
 
-class LayerAdapter(BaseAdapter):
+class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     """
     Layer specific overrides
     """
@@ -86,14 +86,16 @@ class LayerAdapter(BaseAdapter):
             self._relation_node_map_lazy = relation_node_map
         return self._relation_node_map_lazy
 
-    def execute(self, sql: str, **kwargs: Any) -> Tuple[LayerAdapterResponse, agate.Table]:
+    def execute(
+        self, sql: str, auto_begin: bool = False, fetch: bool = False
+    ) -> Tuple[LayerAdapterResponse, agate.Table]:
         """
         if the given `sql` represents a Layer build or train, run Layer
         otherwise, pass the `execute` call to the underlying class
         """
         layer_sql_function = LayerSQLParser().parse(sql)
         if layer_sql_function is None:
-            return super().execute(sql, **kwargs)
+            return super().execute(sql, auto_begin, fetch)
         source_node_relation = self._relation_node_map.get(layer_sql_function.source_name)
         target_node_relation = self._relation_node_map.get(layer_sql_function.target_name)
 
@@ -172,7 +174,7 @@ class LayerAdapter(BaseAdapter):
         def training_func() -> Any:
             return entrypoint_module.main(input_df)
 
-        model_decorator(target_node.name)(training_func)()
+        model_decorator(target_node.name)(training_func)()  # pylint: disable=no-value-for-parameter
         logger.debug("Trained model {}, in project {}", target_node.name, project_name)
 
         output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
@@ -253,7 +255,9 @@ class LayerAdapter(BaseAdapter):
         entrypoint = PurePosixPath(node.root_path) / entrypoint
         logger.debug("Loading Layer entrypoint at {}", entrypoint)
 
-        entrypoint_module = SourceFileLoader(f"layer_entrypoint.{node.unique_id}", str(entrypoint)).load_module()
+        entrypoint_module = SourceFileLoader(  # pylint: disable=deprecated-method
+            f"layer_entrypoint.{node.unique_id}", str(entrypoint)
+        ).load_module(None)
 
         # register this module to be pickled, otherwise pickling fails on dynamically created modules
         cloudpickle.register_pickle_by_value(entrypoint_module)
@@ -269,7 +273,7 @@ class LayerAdapter(BaseAdapter):
 
         with self.connection_for(node):
             # call super() instead of self to avoid a potential infinite loop
-            response, table = super().execute(sql, auto_begin=True, fetch=True)
+            unused_response, table = super().execute(sql, auto_begin=True, fetch=True)
             super().commit_if_has_connection()
             dataframe = pandas_helper.from_agate_table(table)
 

@@ -4,7 +4,7 @@ import sqlparse  # type:ignore
 from sqlparse.utils import remove_quotes  # type:ignore
 
 
-class LayerSqlFunction(object):
+class LayerSqlFunction:
     """
     A parsed Layer SQL statement
     """
