@@ -21,7 +21,7 @@ from dbt.exceptions import RuntimeException  # type: ignore
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerPredictFunction, LayerSQLParser
+from .sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction
 
 
 logger = AdapterLogger("Layer")
@@ -109,8 +109,8 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
 
         if layer_sql_function.function_type == "build":
             return self._run_layer_build(source_node, source_relation, target_node, target_relation)
-        elif layer_sql_function.function_type == "train":
-            return self._run_layer_train(source_node, source_relation, target_node, target_relation)
+        elif isinstance(layer_sql_function, LayerTrainFunction):
+            return self._run_layer_train(layer_sql_function, source_node, source_relation, target_node, target_relation)
         elif isinstance(layer_sql_function, LayerPredictFunction):
             return self._run_layer_predict(
                 layer_sql_function, source_node, source_relation, target_node, target_relation
@@ -151,6 +151,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
 
     def _run_layer_train(
         self,
+        layer_sql_function: LayerTrainFunction,
         source_node: ManifestNode,
         source_relation: BaseRelation,
         target_node: ManifestNode,
@@ -163,7 +164,11 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         entrypoint_module = self._get_layer_entrypoint_module(target_node)
 
         # load source dataframe
-        input_df = self._fetch_dataframe(source_node, source_relation)
+        raw_input_df = self._fetch_dataframe(source_node, source_relation)
+        if layer_sql_function.train_columns == ["*"]:
+            input_df = raw_input_df
+        else:
+            input_df = raw_input_df[layer_sql_function.train_columns].reset_index(drop=True)
         logger.debug("Fetched input dataframe - {}", input_df.shape)
 
         # build the dataframe
