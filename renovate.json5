@@ -1,0 +1,13 @@
+{
+  packageRules: [
+    {
+      matchPackagePatterns: ["*"],
+      excludePackageNames: ["layer"],
+      enabled: false,
+    },
+    {
+      matchPackagePatterns: ["layer"],
+      automerge: true,
+    },
+  ],
+}
