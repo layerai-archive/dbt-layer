@@ -67,4 +67,13 @@ jobs:
           [ -z "$(git status --porcelain=v1 2>/dev/null)" ] || (echo "Lock file is not up to date, please run 'poetry lock --no-update'" && exit 1)
       - name: Publish
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: make publish PYPI_USER=${{ secrets.PYPI_USER }} PYPI_PASSWORD=${{ secrets.PYPI_PASSWORD }} PATCH_VERSION=${GITHUB_RUN_ID}
+        id: publish
+        run: |
+          make publish PYPI_USER=${{ secrets.PYPI_USER }} PYPI_PASSWORD=${{ secrets.PYPI_PASSWORD }} PATCH_VERSION=${GITHUB_RUN_ID}
+          BASE_VERSION=$(poetry version --short | sed 's/\.[0-9]$//g')
+          echo "::set-output name=version::${BASE_VERSION}.${GITHUB_RUN_ID}"
+      - name: Create Github Release
+        if: steps.publish.outcome == 'success'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.publish.outputs.version }}
