@@ -43,7 +43,15 @@ class LayerBuildFunction(LayerSqlFunction):
 
 
 class LayerTrainFunction(LayerSqlFunction):
-    pass
+    def __init__(
+        self,
+        function_type: str,
+        source_name: str,
+        target_name: str,
+        train_columns: List[str],
+    ) -> None:
+        super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
+        self.train_columns = train_columns
 
 
 class LayerSQLParser:
@@ -105,6 +113,9 @@ class LayerSQLParser:
         if self.is_predict_function(function):
             return self._parse_predict(select_column_tokens, function, source_name, target_name)
 
+        if self.is_train_function(function):
+            return self._parse_train(function, source_name, target_name)
+
         return LayerSqlFunction(function[0].value, source_name, target_name)
 
     def _clean_sql_tokens(self, tokens: List[sqlparse.sql.Token]) -> List[sqlparse.sql.Token]:
@@ -151,8 +162,30 @@ class LayerSQLParser:
             )
         return None
 
+    def _parse_train(
+        self,
+        func: sqlparse.sql.Function,
+        source_name: str,
+        target_name: str,
+    ) -> Optional[LayerTrainFunction]:
+        tokens = self._clean_sql_tokens(func[1].tokens)
+        if not tokens or str(tokens[0]) == "*":
+            train_columns = ["*"]
+        else:
+            brackets = self._clean_sql_tokens(tokens[1].tokens)
+            train_columns = [id.value for id in brackets[1].get_identifiers()]
+        return LayerTrainFunction(
+            func[0].value,
+            source_name=source_name,
+            target_name=target_name,
+            train_columns=train_columns,
+        )
+
     def is_predict_function(self, func: sqlparse.sql.Function) -> bool:
         return func[0].value.lower() == "predict"
+
+    def is_train_function(self, func: sqlparse.sql.Function) -> bool:
+        return func[0].value.lower() == "train"
 
     def is_keyword(self, token: sqlparse.sql.Token, keyword: str) -> bool:
         return token.is_keyword and token.value.upper() == keyword.upper()
