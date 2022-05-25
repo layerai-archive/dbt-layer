@@ -61,6 +61,6 @@ def test_sql_parser_with_predict_argument_column_does_not_exist_select_columns()
     assert parsed.predict_columns == ["customer_id", "product_id", "customer_region"]
     assert (
         parsed.sql
-        == "select customer_id, product_id, customer_age from `layer-bigquery`.`ecommerce`.`customers`"
+        == "select customer_id, product_id, customer_age, customer_region from `layer-bigquery`.`ecommerce`.`customers`"
         + " where customer_age > 40 order by customer_id asc limit 1"
     )

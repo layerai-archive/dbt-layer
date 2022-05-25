@@ -144,7 +144,9 @@ class LayerSQLParser:
                 if self.is_identifier(col) and not col.value.startswith("layer.")
             ]
             after_from = self._after_from(select_tokens)
-            sql = self._build_cleaned_sql_query(select_columns, source_name, after_from)
+            sql = self._build_cleaned_sql_query(
+                list(dict.fromkeys((select_columns + predict_columns))), source_name, after_from
+            )
             return LayerPredictFunction(
                 func[0].value,
                 source_name=source_name,
