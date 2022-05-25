@@ -36,6 +36,7 @@ def test_sql_parser_with_predict() -> None:
     assert parsed.model_name == "layer/ecommerce/models/buy_it_again:latest"
     assert parsed.select_columns == ["customer_id", "product_id", "customer_age"]
     assert parsed.predict_columns == ["customer_id", "product_id"]
+    assert parsed.sql == "select customer_id, product_id, customer_age from `layer-bigquery`.`ecommerce`.`customers`"
 
 
 def test_sql_parser_with_predict_argument_column_does_not_exist_select_columns() -> None:
@@ -46,6 +47,7 @@ def test_sql_parser_with_predict_argument_column_does_not_exist_select_columns()
     SELECT customer_id, product_id, customer_age,
     layer.predict("layer/ecommerce/models/buy_it_again:latest", ARRAY[customer_id, product_id, customer_region])
     FROM `layer-bigquery`.`ecommerce`.`customers`
+    where customer_age > 40 order by customer_id asc limit 1
   );
 """
     parsed = LayerSQLParser().parse(sql=sql)
@@ -57,3 +59,8 @@ def test_sql_parser_with_predict_argument_column_does_not_exist_select_columns()
     assert parsed.model_name == "layer/ecommerce/models/buy_it_again:latest"
     assert parsed.select_columns == ["customer_id", "product_id", "customer_age"]
     assert parsed.predict_columns == ["customer_id", "product_id", "customer_region"]
+    assert (
+        parsed.sql
+        == "select customer_id, product_id, customer_age from `layer-bigquery`.`ecommerce`.`customers`"
+        + " where customer_age > 40 order by customer_id asc limit 1"
+    )

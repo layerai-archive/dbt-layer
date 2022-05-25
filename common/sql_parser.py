@@ -31,11 +31,13 @@ class LayerPredictFunction(LayerSqlFunction):
         model_name: str,
         select_columns: List[str],
         predict_columns: List[str],
+        sql: str,
     ) -> None:
         super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
         self.model_name = model_name
         self.select_columns = select_columns
         self.predict_columns = predict_columns
+        self.sql = sql
 
 
 class LayerBuildFunction(LayerSqlFunction):
@@ -84,26 +86,25 @@ class LayerSQLParser:
             return None
 
         # then check the next level
-        select_token = self._clean_sql_tokens(tokens3[-1].tokens)
+        select_tokens = self._clean_sql_tokens(tokens3[-1].tokens)
         if not (
-            len(select_token) == 4
-            and self.is_keyword(select_token[0], "select")
-            and (self.is_identifierlist(select_token[1]) or self.is_identifier(select_token[1]))
-            and self.is_identifier(select_token[3])
+            self.is_keyword(select_tokens[0], "select")
+            and (self.is_identifierlist(select_tokens[1]) or self.is_identifier(select_tokens[1]))
+            and self.is_identifier(select_tokens[3])
         ):
             return None
 
-        select_column_tokens = self._clean_sql_tokens(select_token[1].tokens)
+        select_column_tokens = self._clean_sql_tokens(select_tokens[1].tokens)
         function = self.get_layer_function(select_column_tokens)
         # get the source name
         source_name = ""
-        for token in select_token[3].tokens:
+        for token in select_tokens[3].tokens:
             if token.is_whitespace:
                 break
             source_name += token.value
 
         if self.is_predict_function(function):
-            return self._parse_predict(select_column_tokens, function, source_name, target_name)
+            return self._parse_predict(select_tokens, select_column_tokens, function, source_name, target_name)
 
         return LayerSqlFunction(function[0].value, source_name, target_name)
 
@@ -126,6 +127,7 @@ class LayerSQLParser:
 
     def _parse_predict(
         self,
+        select_tokens: List[sqlparse.sql.Token],
         select_column_tokens: List[sqlparse.sql.Token],
         func: sqlparse.sql.Function,
         source_name: str,
@@ -141,6 +143,8 @@ class LayerSQLParser:
                 for col in select_column_tokens
                 if self.is_identifier(col) and not col.value.startswith("layer.")
             ]
+            after_from = self._after_from(select_tokens)
+            sql = self._build_cleaned_sql_query(select_columns, source_name, after_from)
             return LayerPredictFunction(
                 func[0].value,
                 source_name=source_name,
@@ -148,6 +152,7 @@ class LayerSQLParser:
                 model_name=model_name,
                 select_columns=select_columns,
                 predict_columns=predict_columns,
+                sql=sql,
             )
         return None
 
@@ -181,3 +186,16 @@ class LayerSQLParser:
             if self.is_identifier(token):
                 layer_function = self.get_layer_function(token.tokens, seen_layer_prefix=seen_layer_prefix)
         return layer_function
+
+    def _build_cleaned_sql_query(self, select_columns: List[str], source_name: str, after_from: str) -> str:
+        columns = ", ".join(select_columns)
+        quert = f"select {columns} from {source_name} {after_from}"
+        return sqlparse.format(quert, keyword_case="lower", strip_whitespace=True)
+
+    def _after_from(self, tokens: List[sqlparse.sql.Token]) -> str:
+        from_index = 0
+        for idx, token in enumerate(tokens):
+            if self.is_keyword(token, "FROM"):
+                from_index = idx
+        after_from = from_index + 2
+        return " ".join(t.value for t in tokens[after_from:])
