@@ -208,7 +208,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         try:
             # load source dataframe
-            input_df = self._fetch_dataframe(source_node, source_relation)
+            input_df = self._fetch_dataframe_by_sql(source_node, layer_sql_function.sql)
             logger.debug("Fetched input dataframe - {}", input_df.shape)
             layer_model_def = layer.get_model(layer_sql_function.model_name)
             layer_model = layer_model_def.get_train()
@@ -275,7 +275,12 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         """
         # TODO: fix Possible SQL injection vector through string-based query construction. and remove nosec
         sql = f"select * from {relation.render()}"  # nosec
+        return self._fetch_dataframe_by_sql(node=node, sql=sql)
 
+    def _fetch_dataframe_by_sql(self, node: ManifestNode, sql: str) -> pd.DataFrame:
+        """
+        Fetches all the data from the given sql and returns it as a pandas dataframe
+        """
         with self.connection_for(node):
             # call super() instead of self to avoid a potential infinite loop
             unused_response, table = super().execute(sql, auto_begin=True, fetch=True)
