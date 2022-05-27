@@ -36,6 +36,16 @@ lint: $(INSTALL_STAMP) ## Run all linters
 .PHONY: check
 check: test lint ## Run test and lint
 
+.PHONY: check-package-loads
+check-package-loads: ## Check that we can load the package without the dev dependencies
+	@rm -f $(INSTALL_STAMP)
+ifdef IN_VENV
+	$(POETRY) install --no-dev
+else
+	$(POETRY) install --no-dev --remove-untracked
+endif
+	$(POETRY) run python -c "import dbt"
+
 .PHONY: publish 
 publish: ## Publish to PyPi - should only run in CI
 	@test $${PATCH_VERSION?PATCH_VERSION expected}
