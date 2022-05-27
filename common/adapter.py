@@ -117,6 +117,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
 
+
     def _run_layer_train(
         self,
         layer_sql_function: LayerTrainFunction,
