@@ -1,9 +1,5 @@
-from common.sql_parser import (
-    LayerPredictFunction,
-    LayerSqlFunction,
-    LayerSQLParser,
-    LayerTrainFunction,
-)
+from common.sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction
+
 
 def test_sql_parser_with_predict() -> None:
     sql = """
