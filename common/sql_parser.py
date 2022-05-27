@@ -145,25 +145,26 @@ class LayerSQLParser:
         brackets = self._clean_sql_tokens(tokens[3].tokens)
         if self.is_identifierlist(brackets[1]):
             predict_columns = [id.value for id in brackets[1].get_identifiers()]
-            select_columns = [
-                col.get_name()
-                for col in select_column_tokens
-                if self.is_identifier(col) and not col.value.startswith("layer.")
-            ]
-            after_from = self._after_from(select_tokens)
-            sql = self._build_cleaned_sql_query(
-                list(dict.fromkeys((select_columns + predict_columns))), source_name, after_from
-            )
-            return LayerPredictFunction(
-                func[0].value,
-                source_name=source_name,
-                target_name=target_name,
-                model_name=model_name,
-                select_columns=select_columns,
-                predict_columns=predict_columns,
-                sql=sql,
-            )
-        return None
+        else:
+            predict_columns = [brackets[1].value]
+        select_columns = [
+            col.get_name()
+            for col in select_column_tokens
+            if self.is_identifier(col) and not col.value.startswith("layer.")
+        ]
+        after_from = self._after_from(select_tokens)
+        sql = self._build_cleaned_sql_query(
+            list(dict.fromkeys((select_columns + predict_columns))), source_name, after_from
+        )
+        return LayerPredictFunction(
+            func[0].value,
+            source_name=source_name,
+            target_name=target_name,
+            model_name=model_name,
+            select_columns=select_columns,
+            predict_columns=predict_columns,
+            sql=sql,
+        )
 
     def _parse_train(
         self,
