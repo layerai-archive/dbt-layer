@@ -40,10 +40,6 @@ class LayerPredictFunction(LayerSqlFunction):
         self.sql = sql
 
 
-class LayerBuildFunction(LayerSqlFunction):
-    pass
-
-
 class LayerTrainFunction(LayerSqlFunction):
     def __init__(
         self,

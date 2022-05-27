@@ -96,6 +96,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         layer_sql_function = LayerSQLParser().parse(sql)
         if layer_sql_function is None:
             return super().execute(sql, auto_begin, fetch)
+
         source_node_relation = self._relation_node_map.get(layer_sql_function.source_name)
         target_node_relation = self._relation_node_map.get(layer_sql_function.target_name)
 
@@ -107,9 +108,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         source_node, source_relation = source_node_relation
         target_node, target_relation = target_node_relation
 
-        if layer_sql_function.function_type == "build":
-            return self._run_layer_build(source_node, source_relation, target_node, target_relation)
-        elif isinstance(layer_sql_function, LayerTrainFunction):
+        if isinstance(layer_sql_function, LayerTrainFunction):
             return self._run_layer_train(layer_sql_function, source_node, source_relation, target_node, target_relation)
         elif isinstance(layer_sql_function, LayerPredictFunction):
             return self._run_layer_predict(
@@ -117,37 +116,6 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             )
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
-
-    def _run_layer_build(
-        self,
-        source_node: ManifestNode,
-        source_relation: BaseRelation,
-        target_node: ManifestNode,
-        target_relation: BaseRelation,
-    ) -> Tuple[LayerAdapterResponse, agate.Table]:
-        """
-        Build a dbt model using the given python script
-        """
-        # load entrypoint
-        entrypoint_module = self._get_layer_entrypoint_module(target_node)
-
-        # load source dataframe
-        input_df = self._fetch_dataframe(source_node, source_relation)
-        logger.debug("Fetched input dataframe - {}", input_df.shape)
-
-        # build the dataframe
-        output_df = entrypoint_module.main(input_df)
-        logger.debug("Built output dataframe - {}", output_df.shape)
-
-        # save the resulting dataframe to the target
-        _, table = self._load_dataframe(target_node, target_relation, output_df)
-
-        response = LayerAdapterResponse(
-            _message=f"LAYER DATASET INSERT {output_df.shape[0]}",
-            rows_affected=output_df.shape[0],
-            code="LAYER",
-        )
-        return response, table
 
     def _run_layer_train(
         self,
