@@ -182,9 +182,10 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             model_input = input_df[layer_sql_function.predict_columns]
             predictions = layer_model_def.predict(model_input)
             logger.debug("Prediction dataframe - {}", predictions.shape)
+            select_columns_from_source = list(set(layer_sql_function.select_columns) - set(predictions.columns))
             result_df = pd.concat(
                 [
-                    input_df[layer_sql_function.select_columns].reset_index(drop=True),
+                    input_df[select_columns_from_source].reset_index(drop=True),
                     predictions.reset_index(drop=True),
                 ],
                 axis=1,
