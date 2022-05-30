@@ -179,9 +179,8 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             input_df = self._fetch_dataframe_by_sql(source_node, layer_sql_function.sql)
             logger.debug("Fetched input dataframe - {}", input_df.shape)
             layer_model_def = layer.get_model(layer_sql_function.model_name)
-            layer_model = layer_model_def.get_train()
             model_input = input_df[layer_sql_function.predict_columns]
-            predictions = pd.DataFrame(layer_model.predict(model_input), columns=["prediction"])  # type: ignore # noqa
+            predictions = layer_model_def.predict(model_input)
             logger.debug("Prediction dataframe - {}", predictions.shape)
             result_df = pd.concat(
                 [
