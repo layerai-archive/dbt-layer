@@ -50,7 +50,7 @@ def _dataframe_to_csv(df: pd.DataFrame, path: pathlib.Path) -> None:
     but it will fail to parse the csv containing float numbers.
     """
     for column in df.columns:
-        if df.dtypes[column] == np.dtype(np.float64) and _only_whole_numbers(df[column]):
+        if np.dtype(np.float64) == df.dtypes[column] and _only_whole_numbers(df[column]):
             df = df.astype({column: np.int64})
     df.to_csv(path, index=False)
 
