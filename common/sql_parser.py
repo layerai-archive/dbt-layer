@@ -9,7 +9,11 @@ class LayerSqlFunction:
     A parsed Layer SQL statement
     """
 
+    SUPPORTED_FUNCTION_TYPES = ["build", "train", "predict"]
+
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
+        if function_type.lower() not in self.SUPPORTED_FUNCTION_TYPES:
+            raise ValueError(f"Unsupported function: {function_type}")
         self.function_type = function_type
         self.source_name = source_name
         self.target_name = target_name
@@ -100,6 +104,9 @@ class LayerSQLParser:
 
         select_column_tokens = self._clean_sql_tokens(select_tokens[1].tokens)
         function = self.get_layer_function(select_column_tokens)
+        if not function:
+            return None
+
         # get the source name
         source_name = ""
         for token in select_tokens[3].tokens:
@@ -141,7 +148,12 @@ class LayerSQLParser:
         target_name: str,
     ) -> Optional[LayerPredictFunction]:
         tokens = self._clean_sql_tokens(func[1].tokens)
+        if len(tokens) < 1:
+            raise ValueError("Invalid predict function syntax")
         model_name = remove_quotes(tokens[0].value)
+        if len(tokens) < 3:
+            sql = " ".join(t.value for t in tokens)
+            raise ValueError(f"Invalid predict function syntax {sql}")
         brackets = self._clean_sql_tokens(tokens[3].tokens)
         if self.is_identifierlist(brackets[1]):
             predict_columns = [id.value for id in brackets[1].get_identifiers()]
