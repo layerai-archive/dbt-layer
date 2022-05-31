@@ -1,7 +1,23 @@
 from typing import List, Optional
 
 import sqlparse  # type:ignore
+from sqlparse.sql import Token
 from sqlparse.utils import remove_quotes  # type:ignore
+from collections.abc import Callable
+from typing import (
+    Optional,
+    Tuple,
+    Callable,
+    Iterable,
+    Type,
+    Dict,
+    Any,
+    List,
+    Mapping,
+    Iterator,
+    Union,
+    Set,
+)
 
 
 class LayerSqlFunction:
@@ -57,8 +73,42 @@ class LayerTrainFunction(LayerSqlFunction):
 
 
 class LayerSQLParser:
-    def parse(self, sql: str) -> Optional[LayerSqlFunction]:
 
+    def parse(self, sql:str) -> Optional[LayerSqlFunction]:
+        """
+        returns None if not a layer SQL statement
+        returns an instance of LayerSQL if a valid layer SQL statement
+        """
+        parsed = sqlparse.parse(sql)
+        if not parsed:
+            return None
+        tokens = parsed[0].tokens
+        layer_func = next((x for x in find_functions(tokens) if is_layer_func(x)), None)
+        if not layer_func:
+            return None
+        target_name_group = expect_tokens(tokens, [keyword("create or replace"), group])
+        if not target_name_group:
+            return None
+        target_name = self._get_target_name_from_group(target_name_group)
+
+        if self.is_predict_function(layer_func):
+            return self._parse_predict("", "", layer_func, "", target_name)
+
+        if self.is_train_function(layer_func):
+            return self._parse_train(layer_func, "", target_name)
+        return None
+
+
+    def _get_target_name_from_group(self, token: Token) -> str:
+            from sqlparse.tokens import Newline
+            clean_inner_tokens = remove_tokens(token.flatten(), newline())
+            target_name_tokens = slice_between_tokens(clean_inner_tokens, name(), whitespace())
+            if target_name_tokens :
+                return "".join([x.value for x in target_name_tokens])
+            else:
+                return None
+
+    def old_parse(self, sql: str) -> Optional[LayerSqlFunction]:
         """
         returns None if not a layer SQL statement
         returns an instance of LayerSQL if a valid layer SQL statement
@@ -139,6 +189,10 @@ class LayerSQLParser:
                 and ix == len(tokens) - 1
             )
         ]
+
+    def _n_parse_predict(self, function_token: Token) -> Optional[LayerPredictFunction]:
+
+
 
     def _parse_predict(
         self,
@@ -244,3 +298,73 @@ class LayerSQLParser:
                 from_index = idx
         after_from = from_index + 2
         return " ".join(t.value for t in tokens[after_from:])
+
+## Functions to assist the SQL Parsing
+
+def remove_tokens(tokens:List[Token], pred: Callable[[Token],bool]) -> List[Token]:
+    return [x for x in tokens if not pred(x)]
+
+def expect_tokens(tokens:List[Token], predicates: List[Callable[[Token], bool]]) -> Optional[List[Token]]:
+    if not tokens:
+        return None
+    if not predicates:
+        return tokens[0]
+    pred = predicates[0]
+    for i, token in enumerate(tokens):
+        if pred(token):
+            return expect_tokens(tokens[i:],predicates[1:])
+
+def slice_between_tokens(tokens:List[Token], start: Callable[[Token], bool], end:  Callable[[Token], bool]) -> Optional[List[Token]]:
+    if not tokens:
+        return None
+    start_index = None
+    end_index = None
+    start_seen = False
+    for i, token in enumerate(tokens):
+        if not start_seen and start(token):
+            start_index = i
+            start_seen = True
+        if start_seen and end(token):
+            end_index = i
+            break
+    if start_index>=0 and end_index>0:
+        return tokens[start_index:end_index]
+    else:
+        return None
+
+def find_functions(token: Token) -> List[Token]:
+    from itertools import chain
+    funcs = [[]]
+    if isinstance(token, sqlparse.sql.Statement):
+        funcs = [find_functions(x) for x in token.tokens]
+    elif isinstance(token, sqlparse.sql.IdentifierList):
+        funcs = [find_functions(x) for x in token.get_identifiers()]
+    elif isinstance(token, sqlparse.sql.Identifier):
+        funcs = [find_functions(x) for x in token.tokens]
+    elif isinstance(token, sqlparse.sql.Function):
+        return [token]
+    return list(chain.from_iterable(funcs))
+
+def is_layer_func(func: sqlparse.sql.Function) -> bool:
+    parent = func.parent
+    return isinstance(parent, sqlparse.sql.Identifier) and parent.tokens[0].value == 'layer'
+
+def keyword(value:str) -> Callable[[Token], bool]:
+    def checkToken(token: Token)-> bool:
+        return token.is_keyword and token.value.lower() == value.lower()
+    return checkToken
+
+def whitespace() -> Callable[[Token], bool]:
+    return lambda x:x.is_whitespace
+
+def name() -> Callable[[Token], bool]:
+    from sqlparse.tokens import Name
+    return lambda x:x.ttype is Name
+
+def newline() -> Callable[[Token], bool]:
+    from sqlparse.tokens import Newline
+    return lambda x:x.ttype is Newline
+
+def group() -> Callable[[Token], bool]:
+    return lambda x:x.is_group
+
