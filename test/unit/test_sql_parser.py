@@ -1,3 +1,5 @@
+import pytest
+
 from common.sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction
 
 
@@ -132,3 +134,59 @@ def test_sql_parser_with_predict_argument_single_column() -> None:
         == "select customer_id, product_id, customer_age, customer_region from `layer-bigquery`.`ecommerce`.`customers`"
         + " where customer_age > 40 order by customer_id asc limit 1"
     )
+
+
+def test_sql_parser_with_predict_missing_array() -> None:
+    sql = """
+  create or replace table `layer-bigquery`.`ecommerce`.`customer_features`
+  OPTIONS()
+  as (
+    SELECT customer_id, product_id, customer_age,
+    layer.predict("layer/ecommerce/models/buy_it_again:latest") as likely_to_buy_score
+    FROM `layer-bigquery`.`ecommerce`.`customers`
+  );
+"""
+    with pytest.raises(ValueError, match=r".*Invalid predict function syntax.*") as e:
+        LayerSQLParser().parse(sql=sql)
+
+
+def test_sql_parser_with_predict_missing_model_name() -> None:
+    sql = """
+  create or replace table `layer-bigquery`.`ecommerce`.`customer_features`
+  OPTIONS()
+  as (
+    SELECT customer_id, product_id, customer_age,
+    layer.predict() as likely_to_buy_score
+    FROM `layer-bigquery`.`ecommerce`.`customers`
+  );
+"""
+    with pytest.raises(ValueError, match=r".*Invalid predict function syntax.*") as e:
+        LayerSQLParser().parse(sql=sql)
+
+
+def test_sql_parser_with_unknown_layer_function() -> None:
+    sql = """
+  create or replace table `layer-bigquery`.`ecommerce`.`customer_features`
+  OPTIONS()
+  as (
+    SELECT customer_id, product_id, customer_age,
+    layer.non_existing(ARRAY[customer_id, product_id, customer_region])
+    FROM `layer-bigquery`.`ecommerce`.`customers`
+  );
+"""
+    with pytest.raises(ValueError, match=r".*Unsupported function: non_existing.*") as e:
+        LayerSQLParser().parse(sql=sql)
+
+
+def test_sql_parser_with_typo_in_layer_prefix() -> None:
+    sql = """
+  create or replace table `layer-bigquery`.`ecommerce`.`customer_features`
+  OPTIONS()
+  as (
+    SELECT customer_id, product_id, customer_age,
+    llayer.non_existing(ARRAY[customer_id, product_id, customer_region])
+    FROM `layer-bigquery`.`ecommerce`.`customers`
+  );
+"""
+    parsed = LayerSQLParser().parse(sql=sql)
+    assert not parsed
