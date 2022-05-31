@@ -13,7 +13,7 @@ class LayerSqlFunction:
 
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
         if function_type.lower() not in self.SUPPORTED_FUNCTION_TYPES:
-            raise ValueError(f"Unsupported function: " + function_type)
+            raise ValueError(f"Unsupported function: {function_type}")
         self.function_type = function_type
         self.source_name = source_name
         self.target_name = target_name
@@ -149,7 +149,7 @@ class LayerSQLParser:
     ) -> Optional[LayerPredictFunction]:
         tokens = self._clean_sql_tokens(func[1].tokens)
         if len(tokens) < 1:
-            raise ValueError(f"Invalid predict function syntax")
+            raise ValueError("Invalid predict function syntax")
         model_name = remove_quotes(tokens[0].value)
         if len(tokens) < 3:
             sql = " ".join(t.value for t in tokens)

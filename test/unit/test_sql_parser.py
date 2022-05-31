@@ -146,7 +146,7 @@ def test_sql_parser_with_predict_missing_array() -> None:
     FROM `layer-bigquery`.`ecommerce`.`customers`
   );
 """
-    with pytest.raises(ValueError, match=r".*Invalid predict function syntax.*") as e:
+    with pytest.raises(ValueError, match=r".*Invalid predict function syntax.*"):
         LayerSQLParser().parse(sql=sql)
 
 
@@ -160,7 +160,7 @@ def test_sql_parser_with_predict_missing_model_name() -> None:
     FROM `layer-bigquery`.`ecommerce`.`customers`
   );
 """
-    with pytest.raises(ValueError, match=r".*Invalid predict function syntax.*") as e:
+    with pytest.raises(ValueError, match=r".*Invalid predict function syntax.*"):
         LayerSQLParser().parse(sql=sql)
 
 
@@ -174,7 +174,7 @@ def test_sql_parser_with_unknown_layer_function() -> None:
     FROM `layer-bigquery`.`ecommerce`.`customers`
   );
 """
-    with pytest.raises(ValueError, match=r".*Unsupported function: non_existing.*") as e:
+    with pytest.raises(ValueError, match=r".*Unsupported function: non_existing.*"):
         LayerSQLParser().parse(sql=sql)
 
 
