@@ -43,6 +43,7 @@ def test_sql_parser_for_train() -> None:
     assert parsed.target_name == "`layer-bigquery`.`ecommerce`.`customer_features`"
     assert parsed.train_columns == ["customer_id", "product_id", "customer_age"]
 
+
 def test_parser_for_pass_through() -> None:
     sql = """
         create or replace table `layer-bigquery`.`ecommerce`.`passenger_features`
