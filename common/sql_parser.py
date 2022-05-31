@@ -108,6 +108,53 @@ class LayerSQLParser:
             else:
                 return None
 
+    def parse_predict(layer_func_token: Token, target:str = "") -> Any:
+
+        # We need the parent `select` statement that contains the function
+        # to get access to the selected columns and the source relation
+        select_sttmt = find_parent(layer_func_token, lambda x: isinstance(x, sqlparse.sql.Parenthesis))
+        if not select_sttmt:
+            return None
+        clean_select_sttmt = clean_separators(select_sttmt)
+
+        # sqlparse doesn't seem to parse correclty the inner contents of a parenthesis
+        # here, we rebuild the sql and use sqlparse again to get the relevant tokens
+        inner_sql_text = " ".join(x.value for x in clean_select_sttmt)
+        inner_sql = sqlparse.parse(inner_sql_text)[0]
+        clean_inner_sql = remove_tokens(inner_sql.tokens,lambda x:x.is_whitespace)
+
+        # extract the source relation
+        source_token = next((x for x in expect_tokens(clean_inner_sql, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])), None)
+        if not source_token:
+            raise Exception("Source Not Found")
+        source = source_token.value
+
+        # extract the selected columns in the query
+        select_columns_list = find_token(clean_inner_sql, lambda x:isinstance(x, sqlparse.sql.IdentifierList))
+        columns_incl_layer = find_tokens(select_columns_list.tokens, lambda x:isinstance(x,sqlparse.sql.Identifier))
+        find_layer_token = lambda x: find_layer_func(x) is not None
+        layer_column = find_token(columns_incl_layer, find_layer_token)
+        columns = remove_tokens(columns_incl_layer, find_layer_token)
+        select_columns = [t.value for t in columns]
+
+
+        # compute the column name that holds the predictions
+        predict_column_name = None
+        if layer_column.has_alias():
+            predict_column_name = layer_column.get_name()
+        else:
+            predict_column_name = "prediction"
+
+        # extract the layer prediction function
+        clean_func_tokens = clean_separators(layer_func_token[1].tokens)
+        predict_model = clean_func_tokens[0].value[1:-1] # remove quotes
+
+        #extract the prediction columns
+        predict_cols_tokens = find_token(clean_func_tokens[2].tokens, lambda x:isinstance(x, sqlparse.sql.IdentifierList))
+        predict_cols = [x.value for x in clean_separators(predict_cols_tokens.tokens)]
+
+        return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, "sql")
+
     def old_parse(self, sql: str) -> Optional[LayerSqlFunction]:
         """
         returns None if not a layer SQL statement
