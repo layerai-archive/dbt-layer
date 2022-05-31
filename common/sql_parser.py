@@ -58,6 +58,7 @@ class LayerTrainFunction(LayerSqlFunction):
 
 class LayerSQLParser:
     def parse(self, sql: str) -> Optional[LayerSqlFunction]:
+
         """
         returns None if not a layer SQL statement
         returns an instance of LayerSQL if a valid layer SQL statement

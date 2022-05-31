@@ -44,6 +44,20 @@ def test_sql_parser_for_train() -> None:
     assert parsed.train_columns == ["customer_id", "product_id", "customer_age"]
 
 
+def test_parser_for_pass_through() -> None:
+    sql = """
+        create or replace table `layer-bigquery`.`ecommerce`.`passenger_features`
+        OPTIONS()
+        as (
+        SELECT
+        case when sex = 'female' then 0 end as sex
+        FROM `layer-bigquery`.`ecommerce`.`customers`
+        );
+    """
+    parsed = LayerSQLParser().parse(sql=sql)
+    assert not parsed
+
+
 def test_sql_parser_for_train_with_asterisk() -> None:
     sql = """
   create or replace table `layer-bigquery`.`ecommerce`.`customer_features`
