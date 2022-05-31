@@ -931,7 +931,7 @@ format = ["idna", "jsonpointer (>1.13)", "rfc3987", "strict-rfc3339", "webcolors
 
 [[package]]
 name = "layer"
-version = "0.10.2411094562"
+version = "0.10.2415295995"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -949,7 +949,7 @@ humanize = ">=3.11.0"
 idna = "<3"
 Jinja2 = ">=2.11.3"
 jsonschema = "3.1.1"
-layer-api = "0.9.361413"
+layer-api = "0.9.361649"
 mlflow = ">=1.25.0"
 networkx = ">=2.5"
 packaging = "<=21.0"
@@ -968,7 +968,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.361413"
+version = "0.9.361649"
 description = ""
 category = "main"
 optional = false
@@ -2068,7 +2068,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "61801f050fe03993e4a3dcb6b55478c145b2598d382d4ed25b5542f1bee14e40"
+content-hash = "54ad6682e1091871cc116de71e7811530794624a3df17828d95365139b7cb260"
 
 [metadata.files]
 agate = [
@@ -2717,11 +2717,11 @@ jsonschema = [
     {file = "jsonschema-3.1.1.tar.gz", hash = "sha256:2fa0684276b6333ff3c0b1b27081f4b2305f0a36cf702a23db50edb141893c3f"},
 ]
 layer = [
-    {file = "layer-0.10.2411094562-py3-none-any.whl", hash = "sha256:d2a6a0984adaf8a8763452b27a02e5cd35cd41b7113aa81f3ca3898f3a49fe2a"},
-    {file = "layer-0.10.2411094562.tar.gz", hash = "sha256:8799a08cfcd942952c8b6968b279f9702fefb7d53aeaaabcdb1d7d38569e741a"},
+    {file = "layer-0.10.2415295995-py3-none-any.whl", hash = "sha256:54b8eeb0655b31bddd3c27ac6275b4b08ba01531d3883bc3115156ad48ade81f"},
+    {file = "layer-0.10.2415295995.tar.gz", hash = "sha256:5f1c5d47b93d9c26be00e742f67f840c094eed33c1f382fd82bbdac653bd20c3"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.361413-py3-none-any.whl", hash = "sha256:8d19a9c9708a4595ee1334ae427223bcf97760c8378f0f4a6717204e92b80efb"},
+    {file = "layer_api-0.9.361649-py3-none-any.whl", hash = "sha256:e6698f675a738a7ebef4ad83a986e89eadb12a1b43ea1497f3bb43cea07b8e92"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
