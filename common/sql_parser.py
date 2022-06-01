@@ -141,12 +141,7 @@ class LayerSQLParser:
         columns = remove_tokens(columns_incl_layer, find_layer_token)
         select_columns = [t.value for t in columns]
 
-        # compute the column name that holds the predictions
-        predict_column_name = None
-        if layer_column.has_alias():
-            predict_column_name = layer_column.get_name()
-        else:
-            predict_column_name = "prediction"
+        predict_column_name = self.get_predict_function_name(layer_column)
 
         # extract the layer prediction function
         clean_func_tokens = clean_separators(layer_func_token[1].tokens)
@@ -156,7 +151,19 @@ class LayerSQLParser:
         predict_cols_tokens = find_token(clean_func_tokens[2].tokens, lambda x:isinstance(x, sqlparse.sql.IdentifierList))
         predict_cols = [x.value for x in clean_separators(predict_cols_tokens.tokens)]
 
-        return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, "sql")
+        all_columns = set(predict_cols).union(set(select_columns))
+        sql = self.build_sql(all_columns, source)
+
+        return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, sql)
+
+    def get_predict_function_name(self, layer_column_token: Token) -> Optional[str]:
+        if layer_column_token.has_alias():
+            return layer_column_token.get_name()
+        return "predict"
+
+    def build_sql(self, cols:Set[str], source:str) -> str:
+        col_str = ", ".join(cols)
+        return f"select {col_str} from {source}"
 
     # def old_parse(self, sql: str) -> Optional[LayerSqlFunction]:
     #     """
