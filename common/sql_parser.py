@@ -9,7 +9,7 @@ class LayerSqlFunction:
     A parsed Layer SQL statement
     """
 
-    SUPPORTED_FUNCTION_TYPES = ["build", "train", "predict", "automl"]
+    SUPPORTED_FUNCTION_TYPES = ["train", "predict", "automl"]
 
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
         if function_type.lower() not in self.SUPPORTED_FUNCTION_TYPES:
@@ -76,6 +76,7 @@ class LayerTrainFunction(LayerSqlFunction):
 
 class LayerSQLParser:
     def parse(self, sql: str) -> Optional[LayerSqlFunction]:
+
         """
         returns None if not a layer SQL statement
         returns an instance of LayerSQL if a valid layer SQL statement
