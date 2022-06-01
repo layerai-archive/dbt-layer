@@ -3,8 +3,6 @@ fixed:
   priority: interactive
   job_retries: 1
 prompts:
-  layer_configfile:
-    hint: '/path/to/layer/config.json'
   _choose_authentication_method:
     oauth:
       _fixed_method: oauth
