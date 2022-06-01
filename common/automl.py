@@ -8,8 +8,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier  # type:
 from sklearn.linear_model import LinearRegression, RidgeClassifier  # type: ignore
 from sklearn.metrics import r2_score, roc_auc_score  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
-from sklearn.neural_network import MLPRegressor  # type: ignore
-from sklearn.tree import DecisionTreeClassifier  # type: ignore
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor  # type: ignore
 
 
 class AutoMLModel:
@@ -76,9 +75,9 @@ class ScikitLearnLinearRegression(AutoMLModel):
         return self.score > score
 
 
-class ScikitLearnMLPRegressor(AutoMLModel):
+class ScikitLearnDecisionTreeRegressor(AutoMLModel):
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn MLPRegressor", AutoMLModel.REGRESSOR)
+        super().__init__("Scikit-Learn DecisionTreeRegressor", AutoMLModel.REGRESSOR)
 
     def train(
         self,
@@ -91,7 +90,7 @@ class ScikitLearnMLPRegressor(AutoMLModel):
         features: List[str],
         target: str,
     ) -> None:
-        model = MLPRegressor(activation="relu", hidden_layer_sizes=(32, 64, 128, 64, 8), solver="lbfgs", max_iter=20000)
+        model = DecisionTreeRegressor(max_depth=7)
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         model_accuracy = r2_score(y_test, y_pred)
@@ -218,7 +217,7 @@ class AutoML:
         ScikitLearnAdaBoostClassifier(),
         ScikitLearnRidgeClassifier(),
         ScikitLearnLinearRegression(),
-        ScikitLearnMLPRegressor(),
+        ScikitLearnDecisionTreeRegressor(),
     ]
 
     def __init__(self, model_type: str, df: pd.DataFrame, features: List[str], target: str) -> None:
@@ -241,8 +240,8 @@ class AutoML:
         best_score = 0
         for automl_model in self.automl_models:
             if automl_model.model_type == self.model_type:
-                automl_model.train(x_train, y_train, x_test, y_test, x_val, y_val, self.features, self.target)
                 print(f"Training with {automl_model.name}")
+                automl_model.train(x_train, y_train, x_test, y_test, x_val, y_val, self.features, self.target)
                 print(f"  Completed with score: {automl_model.score:.4f}")
                 if automl_model.compare_score(best_score):
                     best_model = automl_model
