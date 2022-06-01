@@ -53,11 +53,13 @@ class LayerAutoMLFunction(LayerSqlFunction):
         model_type: str,
         feature_columns: List[str],
         target_column: str,
+        sql:str,
     ) -> None:
         super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
         self.feature_columns = feature_columns
         self.target_column = target_column
         self.model_type = model_type
+        self.sql = sql
 
 
 class LayerTrainFunction(LayerSqlFunction):
@@ -131,7 +133,7 @@ class LayerSQLParser:
             source_name += token.value
 
         if self.is_automl_function(function):
-            return self._parse_automl(function, source_name, target_name)
+            return self._parse_automl(select_tokens, function, source_name, target_name)
 
         if self.is_predict_function(function):
             return self._parse_predict(select_tokens, select_column_tokens, function, source_name, target_name)
@@ -218,6 +220,7 @@ class LayerSQLParser:
 
     def _parse_automl(
         self,
+        select_tokens: List[sqlparse.sql.Token],
         func: sqlparse.sql.Function,
         source_name: str,
         target_name: str,
@@ -225,7 +228,9 @@ class LayerSQLParser:
 
         tokens = self._clean_sql_tokens(func[1].tokens)
         if len(tokens) < 5:
-            raise ValueError("Invalid automl function syntax. Example: layer.automl(\"regressor\", ARRAY[column1,column2], column3)")
+            raise ValueError(
+                'Invalid automl function syntax. Example: layer.automl("regressor", ARRAY[column1,column2], column3)'
+            )
         model_type = remove_quotes(tokens[0].value)
         brackets = self._clean_sql_tokens(tokens[3].tokens)
         if self.is_identifierlist(brackets[1]):
@@ -235,13 +240,20 @@ class LayerSQLParser:
 
         target_column = tokens[5].value
 
+        required_columns = feature_columns.copy()
+        required_columns.append(target_column)
+        after_from = self._after_from(select_tokens)
+        sql = self._build_cleaned_sql_query(
+            required_columns, source_name, after_from
+        )
         return LayerAutoMLFunction(
             func[0].value,
+            sql=sql,
             source_name=source_name,
             target_name=target_name,
             model_type=model_type,
             feature_columns=feature_columns,
-            target_column=target_column
+            target_column=target_column,
         )
 
     def is_automl_function(self, func: sqlparse.sql.Function) -> bool:

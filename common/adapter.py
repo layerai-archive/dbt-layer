@@ -21,7 +21,13 @@ from dbt.exceptions import RuntimeException  # type: ignore
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction, LayerAutoMLFunction
+from .sql_parser import (
+    LayerAutoMLFunction,
+    LayerPredictFunction,
+    LayerSQLParser,
+    LayerTrainFunction,
+)
+
 
 logger = AdapterLogger("Layer")
 
@@ -115,7 +121,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             )
         elif isinstance(layer_sql_function, LayerAutoMLFunction):
             return self._run_layer_automl(
-                layer_sql_function, source_node, source_relation, target_node, target_relation
+                layer_sql_function, source_node, target_node
             )
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
@@ -169,28 +175,21 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     def _get_layer_meta(node: ManifestNode) -> LayerMeta:
         return LayerMeta(**node.meta.get("layer", {}))
 
-
     def _run_layer_automl(
         self,
         param: LayerAutoMLFunction,
         source_node: ManifestNode,
-        source_relation: BaseRelation,
         target_node: ManifestNode,
-        target_relation: BaseRelation,
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
+        input_df = self._fetch_dataframe_by_sql(source_node, param.sql)
 
-        raw_input_df = self._fetch_dataframe(source_node, source_relation)
-        if param.feature_columns == ["*"]:
-            input_df = raw_input_df
-        else:
-            required_columns = param.feature_columns.copy()
-            required_columns.append(param.target_column)
-            input_df = raw_input_df[required_columns].reset_index(drop=True)
+        project_name = target_node.fqn[0]
+        model_name = target_node.fqn[1]
 
         from .automl import AutoML
 
         automl = AutoML(param.model_type, input_df, param.feature_columns, param.target_column)
-        automl.train("proj", "model")
+        automl.train(project_name, model_name)
 
         response = LayerAdapterResponse(
             _message=f"LAYER AUTOML COMPLETE",
