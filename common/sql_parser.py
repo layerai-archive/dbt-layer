@@ -30,8 +30,6 @@ class LayerSqlFunction:
     SUPPORTED_FUNCTION_TYPES = [SUPPORTED_FUNCTION_TRAIN, SUPPORTED_FUNCTION_PREDICT]
 
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
-        if function_type.lower() not in self.SUPPORTED_FUNCTION_TYPES:
-            raise ValueError(f"Unsupported function: {function_type}")
         self.function_type = function_type
         self.source_name = source_name
         self.target_name = target_name
@@ -72,7 +70,6 @@ class LayerTrainFunction(LayerSqlFunction):
         super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
         self.train_columns = train_columns
 
-
 class LayerSQLParser:
 
     def parse(self, sql:str) -> Optional[LayerSqlFunction]:
@@ -82,12 +79,12 @@ class LayerSQLParser:
         """
         parsed = sqlparse.parse(sql)
         if not parsed:
-            print("Not parsed")
+
             return None
         tokens = parsed[0].tokens
         layer_func = next((x for x in find_functions(tokens) if is_layer_function(x)), None)
         if not layer_func:
-            print("Not layer func")
+
             return None
         target_name_group = next((x for x in expect_tokens(tokens, [keyword("create or replace"), group()])), None)
         if not target_name_group:
@@ -96,14 +93,14 @@ class LayerSQLParser:
 
         if self.is_predict_function(layer_func):
             return self.parse_predict(layer_func, target_name)
-
-        if self.is_train_function(layer_func):
+        elif self.is_train_function(layer_func):
             return self._parse_train(layer_func, "", target_name)
+        else:
+             raise ValueError(f"Unsupported function: {layer_func.get_name()}")
         return None
 
 
     def _get_target_name_from_group(self, token: Token) -> str:
-            print(f"**** token")
             clean_inner_tokens = remove_tokens(token.flatten(), newline())
             target_name_tokens = slice_between_tokens(clean_inner_tokens, name(), whitespace())
             if target_name_tokens :
@@ -117,7 +114,6 @@ class LayerSQLParser:
         # to get access to the selected columns and the source relation
         select_sttmt = find_parent(layer_func_token, lambda x: isinstance(x, sqlparse.sql.Parenthesis))
         if not select_sttmt:
-            print("Not select statement")
             return None
         clean_select_sttmt = clean_separators(select_sttmt)
 
@@ -128,10 +124,11 @@ class LayerSQLParser:
         clean_inner_sql = remove_tokens(inner_sql.tokens,lambda x:x.is_whitespace)
 
         # extract the source relation
-        source_token = next((x for x in expect_tokens(clean_inner_sql, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])), None)
-        if not source_token:
-            raise ValueError("Invalid predict function syntax")
-        source = source_token.value
+        from_token = expect_tokens(clean_inner_sql, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])
+        if not from_token:
+            raise ValueError("Invalid sql")
+        source = from_token[0].value
+        where_statement = " ".join((x.value for x in from_token[1:]))
 
         # extract the selected columns in the query
         select_columns_list = find_token(clean_inner_sql, lambda x:isinstance(x, sqlparse.sql.IdentifierList))
@@ -141,94 +138,35 @@ class LayerSQLParser:
         columns = remove_tokens(columns_incl_layer, find_layer_token)
         select_columns = [t.value for t in columns]
 
-        predict_column_name = self.get_predict_function_name(layer_column)
+        predict_column_name = get_predict_function_name(layer_column)
 
         # extract the layer prediction function
         clean_func_tokens = clean_separators(layer_func_token[1].tokens)
-        predict_model = clean_func_tokens[0].value[1:-1] # remove quotes
+        if len(clean_func_tokens) < 3:
+            invalid_func = " ".join(t.value for t in clean_func_tokens)
+            raise ValueError(f"Invalid predict function syntax {invalid_func}")
+        model_name, array_lit, bracket_container = clean_func_tokens
+        predict_model = model_name.value[1:-1] # remove quotes
+        predict_cols = self.get_predict_cols(bracket_container)
 
-        #extract the prediction columns
-        predict_cols_tokens = find_token(clean_func_tokens[2].tokens, lambda x:isinstance(x, sqlparse.sql.IdentifierList))
-        predict_cols = [x.value for x in clean_separators(predict_cols_tokens.tokens)]
-
-        all_columns = set(predict_cols).union(set(select_columns))
-        sql = self.build_sql(all_columns, source)
+        all_columns = select_columns + list(set(predict_cols) - set(select_columns))
+        sql = self.build_sql(all_columns, source, where_statement)
 
         return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, sql)
 
-    def get_predict_function_name(self, layer_column_token: Token) -> Optional[str]:
-        if layer_column_token.has_alias():
-            return layer_column_token.get_name()
-        return "predict"
+    def get_predict_cols(self, brace_container_token: Token) -> List[str]:
+        open_brace, predict_cols_token, close_brace = brace_container_token.tokens
+        if isinstance(predict_cols_token, sqlparse.sql.IdentifierList):
+            return [x.value for x in clean_separators(predict_cols_token.tokens)]
+        return [predict_cols_token.value]
 
-    def build_sql(self, cols:Set[str], source:str) -> str:
+    def build_sql(self, cols:Set[str], source:str, where_statement: str) -> str:
         col_str = ", ".join(cols)
-        return f"select {col_str} from {source}"
+        if len(where_statement) > 0:
+            return f"select {col_str} from {source} {where_statement}"
+        else:
+            return f"select {col_str} from {source}"
 
-    # def old_parse(self, sql: str) -> Optional[LayerSqlFunction]:
-    #     """
-    #     returns None if not a layer SQL statement
-    #     returns an instance of LayerSQL if a valid layer SQL statement
-    #     """
-    #     parsed = sqlparse.parse(sql)
-    #     if len(parsed) == 0:
-    #         return None
-    #
-    #     # first strip out whitespace and punctuation from top level
-    #     tokens1 = self._clean_sql_tokens(parsed[0].tokens)
-    #
-    #     # check the top level statement
-    #     if not (
-    #         len(tokens1) == 3
-    #         and self.is_keyword(tokens1[0], "create or replace")
-    #         and self.is_keyword(tokens1[1], "table")
-    #         and isinstance(tokens1[2], sqlparse.sql.Identifier)
-    #         and tokens1[2].is_group
-    #     ):
-    #         return None
-    #
-    #     # then check the next level
-    #     tokens2 = self._clean_sql_tokens(tokens1[2].tokens)
-    #
-    #     if not (len(tokens2) >= 2 and isinstance(tokens2[-1], sqlparse.sql.Identifier)):
-    #         return None
-    #
-    #     # get the target name
-    #     target_name = "".join(t.value for t in tokens2[:-1])
-    #
-    #     # then check the next level
-    #     tokens3 = self._clean_sql_tokens(tokens2[-1].tokens)
-    #     if not (len(tokens3) >= 2 and isinstance(tokens3[-1], sqlparse.sql.Parenthesis)):
-    #         return None
-    #
-    #     # then check the next level
-    #     select_tokens = self._clean_sql_tokens(tokens3[-1].tokens)
-    #     if not (
-    #         self.is_keyword(select_tokens[0], "select")
-    #         and (self.is_identifierlist(select_tokens[1]) or self.is_identifier(select_tokens[1]))
-    #         and self.is_identifier(select_tokens[3])
-    #     ):
-    #         return None
-    #
-    #     select_column_tokens = self._clean_sql_tokens(select_tokens[1].tokens)
-    #     function = self.get_layer_function(select_column_tokens)
-    #     if not function:
-    #         return None
-    #
-    #     # get the source name
-    #     source_name = ""
-    #     for token in select_tokens[3].tokens:
-    #         if token.is_whitespace:
-    #             break
-    #         source_name += token.value
-    #
-    #     if self.is_predict_function(function):
-    #         return self._parse_predict(select_tokens, select_column_tokens, function, source_name, target_name)
-    #
-    #     if self.is_train_function(function):
-    #         return self._parse_train(function, source_name, target_name)
-    #
-    #     return LayerSqlFunction(function[0].value, source_name, target_name)
 
     def _clean_sql_tokens(self, tokens: List[sqlparse.sql.Token]) -> List[sqlparse.sql.Token]:
         """
@@ -356,6 +294,12 @@ class LayerSQLParser:
 
 TokenPredicate = Callable[[Token], bool]
 
+def get_predict_function_name(layer_column_token: Token) -> Optional[str]:
+    if layer_column_token.has_alias():
+        return layer_column_token.get_name()
+    return "predict"
+
+
 def find_token(tokens: List[Token], pred: TokenPredicate) -> Optional[Token] :
     for token in tokens:
         if pred(token):
@@ -367,7 +311,7 @@ def find_tokens(tokens: List[Token], pred: TokenPredicate) -> List[Token] :
     return [x for x in tokens if pred(x)]
 
 
-def remove_tokens(tokens:List[Token], pred: Callable[[Token],bool]) -> List[Token]:
+def remove_tokens(tokens:List[Token], pred: TokenPredicate) -> List[Token]:
     return [x for x in tokens if not pred(x)]
 
 
@@ -409,31 +353,22 @@ def find_functions(elem: Any) -> List[Token]:
     from itertools import chain
     funcs = [[]]
     if isinstance(elem, List):
-        print(f"found list {elem}")
         funcs = [find_functions(x) for x in elem]
     elif isinstance(elem, sqlparse.sql.Statement):
-        print(f"found statement {elem}")
         funcs = [find_functions(x) for x in elem.tokens]
     elif isinstance(elem, sqlparse.sql.IdentifierList):
-        print(f"found identifierList {elem}")
         funcs = [find_functions(x) for x in elem.get_identifiers()]
     elif isinstance(elem, sqlparse.sql.Identifier):
-        print(f"found identifier {elem}")
         funcs = [find_functions(x) for x in elem.tokens]
     elif isinstance(elem, sqlparse.sql.Parenthesis):
         funcs = [find_functions(x) for x in elem.tokens]
     elif isinstance(elem, sqlparse.sql.Function):
-        print(f"found function {elem}")
         return [elem]
-
-    else:
-        print(f"skipped {elem.ttype} {type(elem)}: '{elem}' ")
     return list(chain.from_iterable(funcs))
 
 
 def find_parent(token:Token, pred: TokenPredicate) -> Optional[Token]:
     parent = token.parent
-    print(f"parent: {type(parent)} {parent.ttype} {parent}" )
     if not parent:
         return None
     elif (pred(parent)):
