@@ -120,9 +120,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
                 layer_sql_function, source_node, source_relation, target_node, target_relation
             )
         elif isinstance(layer_sql_function, LayerAutoMLFunction):
-            return self._run_layer_automl(
-                layer_sql_function, source_node, target_node
-            )
+            return self._run_layer_automl(layer_sql_function, source_node, target_node)
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
 
@@ -192,7 +190,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         automl.train(project_name, model_name)
 
         response = LayerAdapterResponse(
-            _message=f"LAYER AUTOML COMPLETE",
+            _message="LAYER AUTOML COMPLETE",
             rows_affected=0,
             code="LAYER",
         )

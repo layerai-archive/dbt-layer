@@ -1,20 +1,36 @@
 from abc import abstractmethod
 from typing import Any, List
 
-import pandas as pd
-from layer.decorators import model
+import layer
+import pandas as pd  # type: ignore
+from layer.decorators import model as model_decorator
+from sklearn.ensemble import RandomForestClassifier  # type: ignore
+from sklearn.metrics import roc_auc_score  # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
+from xgboost import XGBClassifier
 
 
 class AutoMLModel:
-
-    score = None
+    score = 0
     model = None
+    name = None
 
-    def __init__(self, model_type):
+    def __init__(self, name: str, model_type: str) -> None:
         self.model_type = model_type
+        self.name = name
 
     @abstractmethod
-    def train(self, X_train, y_train, X_test, y_test, X_val, y_val, features: List[str], target: str) -> Any:
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.DataFrame,
+        x_test: pd.DataFrame,
+        y_test: pd.DataFrame,
+        x_val: pd.DataFrame,
+        y_val: pd.DataFrame,
+        features: List[str],
+        target: str,
+    ) -> Any:
         """
 
         :return:
@@ -28,16 +44,23 @@ class AutoMLModel:
 
 
 class AutoSKLearnClassifierModel(AutoMLModel):
-    def __init__(self):
-        super(AutoSKLearnClassifierModel, self).__init__("classifier")
+    def __init__(self) -> None:
+        super().__init__("SKLearn", "classifier")
 
-    def train(self, X_train, y_train, X_test, y_test, X_val, y_val, features: List[str], target: str):
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.metrics import roc_auc_score
-
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.DataFrame,
+        x_test: pd.DataFrame,
+        y_test: pd.DataFrame,
+        x_val: pd.DataFrame,
+        y_val: pd.DataFrame,
+        features: List[str],
+        target: str,
+    ) -> None:
         model = RandomForestClassifier()
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
+        model.fit(x_train, y_train)
+        predictions = model.predict(x_test)
         model_accuracy = roc_auc_score(y_test, predictions)
 
         self.score = model_accuracy
@@ -48,19 +71,24 @@ class AutoSKLearnClassifierModel(AutoMLModel):
 
 
 class AutoXGBoostClassifierModel(AutoMLModel):
-    def __init__(self):
-        super(AutoXGBoostClassifierModel, self).__init__("classifier")
+    def __init__(self) -> None:
+        super().__init__("XGBoost", "classifier")
 
-    def train(self, X_train, y_train, X_test, y_test, X_val, y_val, features: List[str], target: str):
-        from sklearn.metrics import roc_auc_score
-        from xgboost import XGBClassifier
-
-        model = XGBClassifier(max_depth=5, learning_rate=0.1, subsample=0.5, n_estimators=10000, n_jobs=-1)
-        model.fit(
-            X_train, y_train, verbose=100, early_stopping_rounds=100, eval_set=[(X_train, y_train), (X_val, y_val)]
-        )
-        ypred_test = model.predict(X_test)
-        self.score = roc_auc_score(y_test, ypred_test)
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.DataFrame,
+        x_test: pd.DataFrame,
+        y_test: pd.DataFrame,
+        x_val: pd.DataFrame,
+        y_val: pd.DataFrame,
+        features: List[str],
+        target: str,
+    ) -> None:
+        model = XGBClassifier(max_depth=5, verbosity=0, learning_rate=0.1, subsample=0.5, n_estimators=100, n_jobs=-1)
+        model.fit(x_train, y_train, eval_set=[(x_train, y_train), (x_val, y_val)], verbose=False)
+        predictions = model.predict(x_test)
+        self.score = roc_auc_score(y_test, predictions)
         self.model = model
 
     def compare_score(self, score: float) -> bool:
@@ -68,36 +96,44 @@ class AutoXGBoostClassifierModel(AutoMLModel):
 
 
 class AutoML:
-
     automl_models = [AutoSKLearnClassifierModel(), AutoXGBoostClassifierModel()]
 
-    def __init__(self, model_type: str, df: pd.DataFrame, features: List[str], target: str):
+    def __init__(self, model_type: str, df: pd.DataFrame, features: List[str], target: str) -> None:
         self.model_type = model_type
         self.df = df
         self.features = features
         self.target = target
         self.score = None
 
-    def train(self, project_name, model_name):
-        print(project_name, model_name)
-        X = self.df.drop([self.target], axis=1)
+    def train(self, project_name: str, model_name: str) -> None:
+        x = self.df.drop([self.target], axis=1)
         y = self.df[self.target]
 
         # Prepare train, test and validation datasets
-        from sklearn.model_selection import train_test_split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
-        X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.5)
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.30)
+        x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, test_size=0.5)
 
         # Run all models matches the requested model type
         best_model = None
-        best_score = None
-        for model in self.automl_models:
-            if model.model_type == self.model_type:
-                model.train(X_train, y_train, X_test, y_test, X_val, y_val, self.features, self.target)
-                print("COMPLETE ", model, model.score)
-                if best_model is None or (best_score is not None and model.compare_score(best_score)):
-                    best_model = model
+        best_score = 0
+        for automl_model in self.automl_models:
+            if automl_model.model_type == self.model_type:
+                automl_model.train(x_train, y_train, x_test, y_test, x_val, y_val, self.features, self.target)
+                print(f"Training with {automl_model.name}")
+                print(f"  Completed with score: {automl_model.score:.4f}")
+                if automl_model.compare_score(best_score):
+                    best_model = automl_model
+                    best_score = automl_model.score
         if best_model is None:
             raise Exception(f"Model type '{self.model_type}' not supported yet!")
         else:
-            print("BEST MODEL ", best_model, best_score)
+            print(f"Best ML model is {best_model.name} with score {best_score:.4f} ")
+            layer.login()
+            layer.init(project_name)
+            trained_model = best_model.model
+
+            def training_func() -> Any:
+                layer.log({"score": best_score})
+                return trained_model
+
+            model_decorator(model_name)(training_func)()  # pylint: disable=no-value-for-parameter

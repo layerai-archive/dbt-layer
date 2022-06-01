@@ -53,7 +53,7 @@ class LayerAutoMLFunction(LayerSqlFunction):
         model_type: str,
         feature_columns: List[str],
         target_column: str,
-        sql:str,
+        sql: str,
     ) -> None:
         super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
         self.feature_columns = feature_columns
@@ -224,7 +224,7 @@ class LayerSQLParser:
         func: sqlparse.sql.Function,
         source_name: str,
         target_name: str,
-    ) -> Optional[LayerTrainFunction]:
+    ) -> Optional[LayerAutoMLFunction]:
 
         tokens = self._clean_sql_tokens(func[1].tokens)
         if len(tokens) < 5:
@@ -243,9 +243,7 @@ class LayerSQLParser:
         required_columns = feature_columns.copy()
         required_columns.append(target_column)
         after_from = self._after_from(select_tokens)
-        sql = self._build_cleaned_sql_query(
-            required_columns, source_name, after_from
-        )
+        sql = self._build_cleaned_sql_query(required_columns, source_name, after_from)
         return LayerAutoMLFunction(
             func[0].value,
             sql=sql,
@@ -260,7 +258,7 @@ class LayerSQLParser:
         return func[0].value.lower() == "automl"
 
     def is_predict_function(self, func: sqlparse.sql.Function) -> bool:
-        return func[0].value.lower() == "automl"
+        return func[0].value.lower() == "predict"
 
     def is_train_function(self, func: sqlparse.sql.Function) -> bool:
         return func[0].value.lower() == "train"
