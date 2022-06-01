@@ -931,7 +931,7 @@ format = ["idna", "jsonpointer (>1.13)", "rfc3987", "strict-rfc3339", "webcolors
 
 [[package]]
 name = "layer"
-version = "0.10.2421060951"
+version = "0.10.2421884845"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -952,6 +952,7 @@ jsonschema = "3.1.1"
 layer-api = "0.9.361887"
 mlflow = ">=1.25.0"
 networkx = ">=2.5"
+numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
 packaging = "<=21.0"
 pandas = "1.3.5"
 pickle5 = {version = ">=0.0.11,<0.1.0", markers = "python_version < \"3.8\""}
@@ -2068,7 +2069,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "c11c58f93f2d504764058f0f8edc85ae698a82f077d6459667fa51fdcf244347"
+content-hash = "ac848a9659d4519feac7d960ed62968b7eb0411ae0570be6e4441797bf12240a"
 
 [metadata.files]
 agate = [
@@ -2717,8 +2718,8 @@ jsonschema = [
     {file = "jsonschema-3.1.1.tar.gz", hash = "sha256:2fa0684276b6333ff3c0b1b27081f4b2305f0a36cf702a23db50edb141893c3f"},
 ]
 layer = [
-    {file = "layer-0.10.2421060951-py3-none-any.whl", hash = "sha256:3d4dbb2368919c43e1428368580c99a56db8158d2378548e2483a532655026ef"},
-    {file = "layer-0.10.2421060951.tar.gz", hash = "sha256:4ae32a02786b3422484dde0d79e6546b626c728212f99ca6c3a838a3ef5fbf1d"},
+    {file = "layer-0.10.2421884845-py3-none-any.whl", hash = "sha256:e5b69464eede8468b688df920961813168d66196148638d1c7c929453795c4ca"},
+    {file = "layer-0.10.2421884845.tar.gz", hash = "sha256:40901dcb8b971b6d5e3d982b084345123bfbd4f7001a7f46f16ea4ee243cf6eb"},
 ]
 layer-api = [
     {file = "layer_api-0.9.361887-py3-none-any.whl", hash = "sha256:1b4c9f82b17a5a617b94113ace79befe0901fd17afc83b736a5181f60943548a"},
