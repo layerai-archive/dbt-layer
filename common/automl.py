@@ -5,13 +5,18 @@ import layer
 import pandas as pd  # type: ignore
 from layer.decorators import model as model_decorator
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier  # type: ignore
-from sklearn.linear_model import RidgeClassifier  # type: ignore
-from sklearn.metrics import roc_auc_score  # type: ignore
+from sklearn.linear_model import LinearRegression, RidgeClassifier  # type: ignore
+from sklearn.metrics import r2_score, roc_auc_score  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
+from sklearn.neural_network import MLPRegressor  # type: ignore
 from sklearn.tree import DecisionTreeClassifier  # type: ignore
 
 
 class AutoMLModel:
+    # model types
+    CLASSIFIER = "classifier"
+    REGRESSOR = "regressor"
+
     score = 0
     model = None
     name = None
@@ -44,9 +49,63 @@ class AutoMLModel:
         """
 
 
+class ScikitLearnLinearRegression(AutoMLModel):
+    def __init__(self) -> None:
+        super().__init__("Scikit-Learn LinearRegression", AutoMLModel.REGRESSOR)
+
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.DataFrame,
+        x_test: pd.DataFrame,
+        y_test: pd.DataFrame,
+        x_val: pd.DataFrame,
+        y_val: pd.DataFrame,
+        features: List[str],
+        target: str,
+    ) -> None:
+        model = LinearRegression(normalize=True, fit_intercept=False, copy_X=True)
+        model.fit(x_train, y_train)
+        y_pred = model.predict(x_test)
+        model_accuracy = r2_score(y_test, y_pred)
+
+        self.score = model_accuracy
+        self.model = model
+
+    def compare_score(self, score: float) -> bool:
+        return self.score > score
+
+
+class ScikitLearnMLPRegressor(AutoMLModel):
+    def __init__(self) -> None:
+        super().__init__("Scikit-Learn MLPRegressor", AutoMLModel.REGRESSOR)
+
+    def train(
+        self,
+        x_train: pd.DataFrame,
+        y_train: pd.DataFrame,
+        x_test: pd.DataFrame,
+        y_test: pd.DataFrame,
+        x_val: pd.DataFrame,
+        y_val: pd.DataFrame,
+        features: List[str],
+        target: str,
+    ) -> None:
+        model = MLPRegressor(activation="relu", hidden_layer_sizes=(32, 64, 128, 64, 8), solver="lbfgs", max_iter=20000)
+        model.fit(x_train, y_train)
+        y_pred = model.predict(x_test)
+        model_accuracy = r2_score(y_test, y_pred)
+
+        self.score = model_accuracy
+        self.model = model
+
+    def compare_score(self, score: float) -> bool:
+        return self.score > score
+
+
 class ScikitLearnRandomForestClassifier(AutoMLModel):
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn RandomForestClassifier", "classifier")
+        super().__init__("Scikit-Learn RandomForestClassifier", AutoMLModel.CLASSIFIER)
 
     def train(
         self,
@@ -73,7 +132,7 @@ class ScikitLearnRandomForestClassifier(AutoMLModel):
 
 class ScikitLearnRidgeClassifier(AutoMLModel):
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn RidgeClassifier", "classifier")
+        super().__init__("Scikit-Learn RidgeClassifier", AutoMLModel.CLASSIFIER)
 
     def train(
         self,
@@ -100,7 +159,7 @@ class ScikitLearnRidgeClassifier(AutoMLModel):
 
 class ScikitLearnDecisionTreeClassifier(AutoMLModel):
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn DecisionTreeClassifier", "classifier")
+        super().__init__("Scikit-Learn DecisionTreeClassifier", AutoMLModel.CLASSIFIER)
 
     def train(
         self,
@@ -127,7 +186,7 @@ class ScikitLearnDecisionTreeClassifier(AutoMLModel):
 
 class ScikitLearnAdaBoostClassifier(AutoMLModel):
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn AdaBoostClassifier", "classifier")
+        super().__init__("Scikit-Learn AdaBoostClassifier", AutoMLModel.CLASSIFIER)
 
     def train(
         self,
@@ -158,6 +217,8 @@ class AutoML:
         ScikitLearnDecisionTreeClassifier(),
         ScikitLearnAdaBoostClassifier(),
         ScikitLearnRidgeClassifier(),
+        ScikitLearnLinearRegression(),
+        ScikitLearnMLPRegressor(),
     ]
 
     def __init__(self, model_type: str, df: pd.DataFrame, features: List[str], target: str) -> None:
