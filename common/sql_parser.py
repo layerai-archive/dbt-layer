@@ -121,11 +121,8 @@ class LayerSQLParser:
         def find_layer_token(t: Token) -> bool:
             return find_layer_function(t) is not None
 
-        layer_column = find_token(columns_incl_layer, find_layer_token)
         columns = remove_tokens(columns_incl_layer, find_layer_token)
         select_columns = [t.value for t in columns]
-
-        predict_column_name = get_predict_function_name(layer_column)
 
         # extract the layer prediction function
         clean_func_tokens = clean_separators(layer_func_token[1].tokens)
@@ -137,7 +134,8 @@ class LayerSQLParser:
         predict_cols = self.get_predict_cols(bracket_container)
 
         all_columns = select_columns + list(set(predict_cols) - set(select_columns))
-        sql = self.build_sql(all_columns, source, where_statement)
+        sql_text = self.build_sql(all_columns, source, where_statement)
+        sql = sqlparse.format(sql_text, keyword_case="lower", strip_whitespace=True)
 
         return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, sql)
 
@@ -183,7 +181,7 @@ class LayerSQLParser:
             return [self.ALL_COLUMNS_WILDCARD]
         if content_tokens[0].value.lower() == "array":
             if len(content_tokens) < 2:
-                raise ValueError(f"Invalid train function syntax")
+                raise ValueError("Invalid train function syntax")
             identifiers = clean_separators(content_tokens[1].tokens)[0]
             return [x.value for x in identifiers.get_identifiers()]
         else:
@@ -273,7 +271,7 @@ class LayerSQLParser:
         return " ".join(t.value for t in tokens[after_from:])
 
 
-## Functions to assist the SQL Parsing
+# Functions to assist the SQL Parsing
 
 TokenPredicate = Callable[[Token], bool]
 
