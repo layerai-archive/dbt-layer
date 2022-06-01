@@ -9,7 +9,7 @@ class LayerSqlFunction:
     A parsed Layer SQL statement
     """
 
-    SUPPORTED_FUNCTION_TYPES = ["build", "train", "predict"]
+    SUPPORTED_FUNCTION_TYPES = ["build", "train", "predict", "automl"]
 
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
         if function_type.lower() not in self.SUPPORTED_FUNCTION_TYPES:
@@ -42,6 +42,22 @@ class LayerPredictFunction(LayerSqlFunction):
         self.select_columns = select_columns
         self.predict_columns = predict_columns
         self.sql = sql
+
+
+class LayerAutoMLFunction(LayerSqlFunction):
+    def __init__(
+        self,
+        function_type: str,
+        source_name: str,
+        target_name: str,
+        model_type: str,
+        feature_columns: List[str],
+        target_column: str,
+    ) -> None:
+        super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
+        self.feature_columns = feature_columns
+        self.target_column = target_column
+        self.model_type = model_type
 
 
 class LayerTrainFunction(LayerSqlFunction):
@@ -113,6 +129,9 @@ class LayerSQLParser:
             if token.is_whitespace:
                 break
             source_name += token.value
+
+        if self.is_automl_function(function):
+            return self._parse_automl(function, source_name, target_name)
 
         if self.is_predict_function(function):
             return self._parse_predict(select_tokens, select_column_tokens, function, source_name, target_name)
@@ -197,8 +216,39 @@ class LayerSQLParser:
             train_columns=train_columns,
         )
 
+    def _parse_automl(
+        self,
+        func: sqlparse.sql.Function,
+        source_name: str,
+        target_name: str,
+    ) -> Optional[LayerTrainFunction]:
+
+        tokens = self._clean_sql_tokens(func[1].tokens)
+        if len(tokens) < 5:
+            raise ValueError("Invalid automl function syntax. Example: layer.automl(\"regressor\", ARRAY[column1,column2], column3)")
+        model_type = remove_quotes(tokens[0].value)
+        brackets = self._clean_sql_tokens(tokens[3].tokens)
+        if self.is_identifierlist(brackets[1]):
+            feature_columns = [id.value for id in brackets[1].get_identifiers()]
+        else:
+            feature_columns = [brackets[1].value]
+
+        target_column = tokens[5].value
+
+        return LayerAutoMLFunction(
+            func[0].value,
+            source_name=source_name,
+            target_name=target_name,
+            model_type=model_type,
+            feature_columns=feature_columns,
+            target_column=target_column
+        )
+
+    def is_automl_function(self, func: sqlparse.sql.Function) -> bool:
+        return func[0].value.lower() == "automl"
+
     def is_predict_function(self, func: sqlparse.sql.Function) -> bool:
-        return func[0].value.lower() == "predict"
+        return func[0].value.lower() == "automl"
 
     def is_train_function(self, func: sqlparse.sql.Function) -> bool:
         return func[0].value.lower() == "train"

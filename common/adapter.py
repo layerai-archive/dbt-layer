@@ -21,8 +21,7 @@ from dbt.exceptions import RuntimeException  # type: ignore
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction
-
+from .sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction, LayerAutoMLFunction
 
 logger = AdapterLogger("Layer")
 
@@ -114,6 +113,10 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             return self._run_layer_predict(
                 layer_sql_function, source_node, source_relation, target_node, target_relation
             )
+        elif isinstance(layer_sql_function, LayerAutoMLFunction):
+            return self._run_layer_automl(
+                layer_sql_function, source_node, source_relation, target_node, target_relation
+            )
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
 
@@ -165,6 +168,37 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     @staticmethod
     def _get_layer_meta(node: ManifestNode) -> LayerMeta:
         return LayerMeta(**node.meta.get("layer", {}))
+
+
+    def _run_layer_automl(
+        self,
+        param: LayerAutoMLFunction,
+        source_node: ManifestNode,
+        source_relation: BaseRelation,
+        target_node: ManifestNode,
+        target_relation: BaseRelation,
+    ) -> Tuple[LayerAdapterResponse, agate.Table]:
+
+        raw_input_df = self._fetch_dataframe(source_node, source_relation)
+        if param.feature_columns == ["*"]:
+            input_df = raw_input_df
+        else:
+            required_columns = param.feature_columns.copy()
+            required_columns.append(param.target_column)
+            input_df = raw_input_df[required_columns].reset_index(drop=True)
+
+        from .automl import AutoML
+
+        automl = AutoML(param.model_type, input_df, param.feature_columns, param.target_column)
+        automl.train("proj", "model")
+
+        response = LayerAdapterResponse(
+            _message=f"LAYER AUTOML COMPLETE",
+            rows_affected=0,
+            code="LAYER",
+        )
+
+        return response, None
 
     def _run_layer_predict(
         self,
