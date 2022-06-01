@@ -9,7 +9,7 @@ class LayerSqlFunction:
     A parsed Layer SQL statement
     """
 
-    SUPPORTED_FUNCTION_TYPES = ["build", "train", "predict"]
+    SUPPORTED_FUNCTION_TYPES = ["train", "predict"]
 
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
         if function_type.lower() not in self.SUPPORTED_FUNCTION_TYPES:
