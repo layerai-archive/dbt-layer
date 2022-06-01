@@ -59,31 +59,31 @@ class LayerTrainFunction(LayerSqlFunction):
 
 
 def find_from_token(tokens: List[Token]) -> List[Token]:
-        return expect_tokens(tokens, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])
+    return expect_tokens(tokens, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])
 
 
 def get_from_where_clause(select_tokens: List[Token]) -> Tuple[str, str]:
-        from_token = find_from_token(select_tokens)
-        if not from_token:
-            raise ValueError("Invalid sql. Missing 'from' clause.")
-        source = from_token[0].value
-        where_statement = " ".join((x.value for x in from_token[1:]))
-        return source, where_statement
+    from_token = find_from_token(select_tokens)
+    if not from_token:
+        raise ValueError("Invalid sql. Missing 'from' clause.")
+    source = from_token[0].value
+    where_statement = " ".join((x.value for x in from_token[1:]))
+    return source, where_statement
 
 
 def get_predict_cols(brace_container_token: Token) -> List[str]:
-        _, predict_cols_token, _ = brace_container_token.tokens
-        if isinstance(predict_cols_token, sqlparse.sql.IdentifierList):
-            return [x.value for x in clean_separators(predict_cols_token.tokens)]
-        return [predict_cols_token.value]
+    _, predict_cols_token, _ = brace_container_token.tokens
+    if isinstance(predict_cols_token, sqlparse.sql.IdentifierList):
+        return [x.value for x in clean_separators(predict_cols_token.tokens)]
+    return [predict_cols_token.value]
 
 
 def build_sql(cols: List[str], source: str, where_statement: str) -> str:
-        col_str = ", ".join(cols)
-        if len(where_statement) > 0:
-            return f"select {col_str} from {source} {where_statement}"
-        else:
-            return f"select {col_str} from {source}"
+    col_str = ", ".join(cols)
+    if len(where_statement) > 0:
+        return f"select {col_str} from {source} {where_statement}"
+    else:
+        return f"select {col_str} from {source}"
 
 
 class LayerSQLParser:
@@ -109,9 +109,9 @@ class LayerSQLParser:
             return None
         target_name = self._get_target_name_from_group(target_name_group)
 
-        if self.is_predict_function(layer_func):
+        if is_predict_function(layer_func):
             return self.parse_predict(layer_func, target_name)
-        elif self.is_train_function(layer_func):
+        elif is_train_function(layer_func):
             return self.parse_train(layer_func, target_name)
         else:
             raise ValueError(f"Unsupported function: {layer_func.get_name()}")
@@ -197,6 +197,7 @@ class LayerSQLParser:
         else:
             return [content_tokens[0].value]
 
+
 # Functions to assist the SQL Parsing
 
 
@@ -238,9 +239,7 @@ def expect_tokens(tokens: List[Token], predicates: List[TokenPredicate]) -> List
     return []
 
 
-def slice_between_tokens(
-    tokens: List[Token], start: TokenPredicate, end: TokenPredicate
-) -> Optional[List[Token]]:
+def slice_between_tokens(tokens: List[Token], start: TokenPredicate, end: TokenPredicate) -> Optional[List[Token]]:
     if not tokens:
         return None
     start_index = -1
@@ -295,6 +294,14 @@ def is_layer_function(func: sqlparse.sql.Function) -> bool:
 
 def find_layer_function(tokens: List[Token]) -> Optional[Token]:
     return next((x for x in find_functions(tokens) if is_layer_function(x)), None)
+
+
+def is_predict_function(func: sqlparse.sql.Function) -> bool:
+    return func[0].value.lower() == "predict"
+
+
+def is_train_function(func: sqlparse.sql.Function) -> bool:
+    return func[0].value.lower() == "train"
 
 
 def keyword(value: str) -> TokenPredicate:
