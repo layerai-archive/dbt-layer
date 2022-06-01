@@ -1,22 +1,8 @@
-from collections.abc import Callable
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Callable, List, Optional, Set
 
 import sqlparse  # type:ignore
 from sqlparse.sql import Token  # type:ignore
-from sqlparse.tokens import DML, Keyword, Name, Newline, Punctuation  # type:ignore
+from sqlparse.tokens import Name, Newline, Punctuation  # type:ignore
 from sqlparse.utils import remove_quotes  # type:ignore
 
 
@@ -64,16 +50,18 @@ class LayerPredictFunction(LayerSqlFunction):
 class LayerTrainFunction(LayerSqlFunction):
     def __init__(
         self,
-        function_type: str,
         source_name: str,
         target_name: str,
         train_columns: List[str],
     ) -> None:
-        super().__init__(function_type=function_type, source_name=source_name, target_name=target_name)
+        super().__init__(function_type=self.SUPPORTED_FUNCTION_TRAIN, source_name=source_name, target_name=target_name)
         self.train_columns = train_columns
 
 
 class LayerSQLParser:
+
+    ALL_COLUMNS_WILDCARD = "*"
+
     def parse(self, sql: str) -> Optional[LayerSqlFunction]:
         """
         returns None if not a layer SQL statement
@@ -96,7 +84,7 @@ class LayerSQLParser:
         if self.is_predict_function(layer_func):
             return self.parse_predict(layer_func, target_name)
         elif self.is_train_function(layer_func):
-            return self._parse_train(layer_func, "", target_name)
+            return self.parse_train(layer_func, target_name)
         else:
             raise ValueError(f"Unsupported function: {layer_func.get_name()}")
         return None
@@ -124,17 +112,15 @@ class LayerSQLParser:
         inner_sql = sqlparse.parse(inner_sql_text)[0]
         clean_inner_sql = remove_tokens(inner_sql.tokens, lambda x: x.is_whitespace)
 
-        # extract the source relation
-        from_token = expect_tokens(clean_inner_sql, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])
-        if not from_token:
-            raise ValueError("Invalid sql")
-        source = from_token[0].value
-        where_statement = " ".join((x.value for x in from_token[1:]))
+        source, where_statement = self.get_from_where_clause(clean_inner_sql)
 
         # extract the selected columns in the query
         select_columns_list = find_token(clean_inner_sql, lambda x: isinstance(x, sqlparse.sql.IdentifierList))
         columns_incl_layer = find_tokens(select_columns_list.tokens, lambda x: isinstance(x, sqlparse.sql.Identifier))
-        find_layer_token = lambda x: find_layer_function(x) is not None
+
+        def find_layer_token(t: Token) -> bool:
+            return find_layer_function(t) is not None
+
         layer_column = find_token(columns_incl_layer, find_layer_token)
         columns = remove_tokens(columns_incl_layer, find_layer_token)
         select_columns = [t.value for t in columns]
@@ -146,14 +132,25 @@ class LayerSQLParser:
         if len(clean_func_tokens) < 3:
             invalid_func = " ".join(t.value for t in clean_func_tokens)
             raise ValueError(f"Invalid predict function syntax {invalid_func}")
-        model_name, array_lit, bracket_container = clean_func_tokens
-        predict_model = model_name.value[1:-1]  # remove quotes
+        model_name, array_literal, bracket_container = clean_func_tokens
+        predict_model = remove_quotes(model_name.value)
         predict_cols = self.get_predict_cols(bracket_container)
 
         all_columns = select_columns + list(set(predict_cols) - set(select_columns))
         sql = self.build_sql(all_columns, source, where_statement)
 
         return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, sql)
+
+    def find_from_token(self, tokens: List[Token]) -> List[Token]:
+        return expect_tokens(tokens, [keyword("from"), lambda x: isinstance(x, sqlparse.sql.Identifier)])
+
+    def get_from_where_clause(self, select_tokens: List[Token]) -> (str, str):
+        from_token = self.find_from_token(select_tokens)
+        if not from_token:
+            raise ValueError("Invalid sql. Missing 'from' clause.")
+        source = from_token[0].value
+        where_statement = " ".join((x.value for x in from_token[1:]))
+        return source, where_statement
 
     def get_predict_cols(self, brace_container_token: Token) -> List[str]:
         open_brace, predict_cols_token, close_brace = brace_container_token.tokens
@@ -167,6 +164,30 @@ class LayerSQLParser:
             return f"select {col_str} from {source} {where_statement}"
         else:
             return f"select {col_str} from {source}"
+
+    def parse_train(self, layer_func_token: Token, target: str) -> LayerTrainFunction:
+        select = find_parent(layer_func_token, lambda x: isinstance(x, sqlparse.sql.Identifier))
+        clean_select = clean_separators(select)
+        source, where_statement = self.get_from_where_clause(layer_func_token.parent.parent.tokens)
+        _, train_func = clean_select
+        if len(train_func.tokens) < 2:
+            invalid_func = "".join(x.value for x in select.flatten())
+            raise ValueError(f"Invalid train function syntax {invalid_func}")
+        _, parenthesis_group = train_func.tokens
+        cols = self.extract_columns(clean_separators(parenthesis_group.tokens))
+
+        return LayerTrainFunction(source, target, cols)
+
+    def extract_columns(self, content_tokens: List[Token]) -> List[str]:
+        if len(content_tokens) < 1:
+            return [self.ALL_COLUMNS_WILDCARD]
+        if content_tokens[0].value.lower() == "array":
+            if len(content_tokens) < 2:
+                raise ValueError(f"Invalid train function syntax")
+            identifiers = clean_separators(content_tokens[1].tokens)[0]
+            return [x.value for x in identifiers.get_identifiers()]
+        else:
+            return [content_tokens[0].value]
 
     def _clean_sql_tokens(self, tokens: List[sqlparse.sql.Token]) -> List[sqlparse.sql.Token]:
         """
@@ -184,45 +205,6 @@ class LayerSQLParser:
                 and ix == len(tokens) - 1
             )
         ]
-
-    def _parse_predict(
-        self,
-        select_tokens: List[sqlparse.sql.Token],
-        select_column_tokens: List[sqlparse.sql.Token],
-        func: sqlparse.sql.Function,
-        source_name: str,
-        target_name: str,
-    ) -> Optional[LayerPredictFunction]:
-        tokens = self._clean_sql_tokens(func[1].tokens)
-        if len(tokens) < 1:
-            raise ValueError("Invalid predict function syntax")
-        model_name = remove_quotes(tokens[0].value)
-        if len(tokens) < 3:
-            sql = " ".join(t.value for t in tokens)
-            raise ValueError(f"Invalid predict function syntax {sql}")
-        brackets = self._clean_sql_tokens(tokens[3].tokens)
-        if self.is_identifierlist(brackets[1]):
-            predict_columns = [id.value for id in brackets[1].get_identifiers()]
-        else:
-            predict_columns = [brackets[1].value]
-        select_columns = [
-            col.get_name()
-            for col in select_column_tokens
-            if self.is_identifier(col) and not col.value.startswith("layer.")
-        ]
-        after_from = self._after_from(select_tokens)
-        sql = self._build_cleaned_sql_query(
-            list(dict.fromkeys((select_columns + predict_columns))), source_name, after_from
-        )
-        return LayerPredictFunction(
-            func[0].value,
-            source_name=source_name,
-            target_name=target_name,
-            model_name=model_name,
-            select_columns=select_columns,
-            predict_columns=predict_columns,
-            sql=sql,
-        )
 
     def _parse_train(
         self,
