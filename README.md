@@ -9,7 +9,7 @@ alt="Layer"/>
 
 <p align="center">
     <a href="https://github.com/layerai/dbt-adapters/blob/main/LICENSE">
-        <img alt="License" src="https://img.shields.io/github/license/layerai/dbt-adapters.svg?color=blue">
+        <img alt="License" src="https://img.shields.io/github/license/layerai/dbt-adapters.svg?color=yellow">
     </a>
     <a href="https://pypi.python.org/pypi/dbt-layer-big
 query">
