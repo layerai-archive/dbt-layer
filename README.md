@@ -44,6 +44,8 @@ Check out the examples we have prepared for you:
 
 ## Contributing
 
+At Layer, our mission is to make machine learning more accessible. This opensource project is one of our initiatives to contribute to ML's growth and evolution. Help us with your contributions!
+
 ### Prerequisites
 - `pyenv`
 - `poetry`
