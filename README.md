@@ -52,7 +52,7 @@ layer-profile:
       keyfile: [/path/to/bigquery/keyfile.json]
 ```
 
-Now, start making predictions in your dbt dag:
+Now, start making predictions directly in your dbt DAG:
 
 ```sql
 select id,
