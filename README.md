@@ -20,7 +20,7 @@ query">
     </a>
 </p>
 
-# Layer dbt Adapter for BigQuery
+# Layer dbt Adapter for BigQuery (Beta)
 
 This adapter runs ML pipelines inside dbt dag with BigQuery as the backing data warehouse. With Layer dbt Adapter you can:
 
