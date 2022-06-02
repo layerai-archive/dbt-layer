@@ -38,7 +38,7 @@ To immediately start  using Layer inside your dbt DAG, install the Layer dbt Ada
 pip install dbt-layer-bigquery -U
 ```
 
-Add Layer dbt Adapter to your BigQuery profile. An example profile:
+Add the Layer dbt Adapter to your BigQuery profile. An example profile:
 ```yaml
 layer-profile:
   target: dev
