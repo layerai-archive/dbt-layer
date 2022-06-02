@@ -1,3 +1,19 @@
+<p align="center">
+    <br>
+    <a href="https://layer.ai">
+          <img src="https://app.layer.ai/assets/layer_wordmark_black.png" width="40%"
+alt="Layer"/>
+    </a>
+    <br>
+</p>
+
+<p align="center">
+    <a href="https://pypi.python.org/pypi/dbt-layer-big
+query">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/layer.svg">
+    </a>
+</p>
+
 # Layer dbt Adapter for BigQuery
 
 This adapter runs ML pipelines inside dbt dag with BigQuery as the backing data warehouse. With Layer dbt Adapter you can:
