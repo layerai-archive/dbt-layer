@@ -33,7 +33,7 @@ To learn more about Layer:
 https://layer.ai
 
 ## Getting started
-To start immediately using Layer inside your dbt dag, install Layer dbt Adapter:
+To immediately start  using Layer inside your dbt DAG, install the Layer dbt Adapter for BigQuery:
 ```shell
 pip install dbt-layer-bigquery -U
 ```
