@@ -19,8 +19,8 @@ query">
 This adapter runs ML pipelines inside dbt dag with BigQuery as the backing data warehouse. With Layer dbt Adapter you can:
 
 - Score your data with a machine learning model from Layer
-- Train an AutoML model with your data [coming soon...]
-- Train a custom machine learning model with your data [coming soon...]
+- Train an AutoML model with your data _[coming soon...]_
+- Train a custom machine learning model with your data _[coming soon...]_
 
 To learn more about Layer:
 
