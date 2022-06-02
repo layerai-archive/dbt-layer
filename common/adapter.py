@@ -21,7 +21,12 @@ from dbt.exceptions import RuntimeException  # type: ignore
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
-from .sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction
+from .sql_parser import (
+    LayerAutoMLFunction,
+    LayerPredictFunction,
+    LayerSQLParser,
+    LayerTrainFunction,
+)
 
 
 logger = AdapterLogger("Layer")
@@ -114,6 +119,8 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             return self._run_layer_predict(
                 layer_sql_function, source_node, source_relation, target_node, target_relation
             )
+        elif isinstance(layer_sql_function, LayerAutoMLFunction):
+            return self._run_layer_automl(layer_sql_function, source_node, target_node)
         else:
             raise RuntimeException(f'Unknown layer function "{layer_sql_function.function_type}"')
 
@@ -165,6 +172,30 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     @staticmethod
     def _get_layer_meta(node: ManifestNode) -> LayerMeta:
         return LayerMeta(**node.meta.get("layer", {}))
+
+    def _run_layer_automl(
+        self,
+        param: LayerAutoMLFunction,
+        source_node: ManifestNode,
+        target_node: ManifestNode,
+    ) -> Tuple[LayerAdapterResponse, agate.Table]:
+        input_df = self._fetch_dataframe_by_sql(source_node, param.sql)
+
+        project_name = target_node.fqn[0]
+        model_name = target_node.fqn[1]
+
+        from .automl import AutoML
+
+        automl = AutoML(param.model_type, input_df, param.feature_columns, param.target_column)
+        automl.train(project_name, model_name)
+
+        response = LayerAdapterResponse(
+            _message="LAYER AUTOML COMPLETE",
+            rows_affected=0,
+            code="LAYER",
+        )
+
+        return response, None
 
     def _run_layer_predict(
         self,
