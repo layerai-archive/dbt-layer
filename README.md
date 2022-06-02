@@ -58,9 +58,10 @@ from {{ref('reviews')}}
 ## Examples
 Check out the examples we have prepared for you:
 
-- [Predicting survials of Titanic](https://github.com/layerai/examples-dbt/tree/main/titanic)
-- [Sentiment analysis of product reviews](https://github.com/layerai/examples-dbt/tree/main/sentiment_analysis)
-- [Object detection in product images](https://github.com/layerai/examples-dbt/tree/main/cloth_detector)
+- [Predicting survials of Titanic](https://github.com/layerai/examples-dbt/tree/main/titanic) - Predicts the survivals of the Titanic disaster.
+- [Sentiment analysis of product reviews](https://github.com/layerai/examples-dbt/tree/main/sentiment_analysis) - An example shows how to make multi-language sentiment analysis.
+- [Object detection in product images](https://github.com/layerai/examples-dbt/tree/main/cloth_detector) - Detects cloths from product images using a pretrained computer vision model.
+
 
 ## Contributing
 
