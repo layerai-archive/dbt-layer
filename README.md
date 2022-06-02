@@ -22,6 +22,10 @@ This adapter runs ML pipelines inside dbt dag with BigQuery as the backing data 
 - Train an AutoML model with your data [coming soon...]
 - Train a custom machine learning model with your data [coming soon...]
 
+To learn more about Layer:
+
+https://layer.ai
+
 ## Getting started
 To start immediately using Layer inside your dbt dag, install Layer dbt Adapter:
 ```shell
