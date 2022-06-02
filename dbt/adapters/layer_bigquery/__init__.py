@@ -9,4 +9,5 @@ Plugin = AdapterPlugin(
     adapter=LayerBigQueryAdapter,
     credentials=LayerBigQueryCredentials,
     include_path=layer_bigquery.PACKAGE_PATH,
+    dependencies=['bigquery']
 )
