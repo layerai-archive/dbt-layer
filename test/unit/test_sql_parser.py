@@ -1,6 +1,11 @@
 import pytest
 
-from common.sql_parser import LayerPredictFunction, LayerSQLParser, LayerTrainFunction
+from common.sql_parser import (
+    LayerAutoMLFunction,
+    LayerPredictFunction,
+    LayerSQLParser,
+    LayerTrainFunction,
+)
 
 
 def test_sql_parser_with_predict() -> None:
@@ -204,3 +209,27 @@ def test_sql_parser_with_typo_in_layer_prefix() -> None:
 """
     parsed = LayerSQLParser().parse(sql=sql)
     assert not parsed
+
+
+def test_sql_parser_with_automl_function() -> None:
+    sql = """
+  create or replace table `layer-bigquery`.`titanic`.`Survived`
+  OPTIONS()
+  as (
+    SELECT layer.automl("classifier", ARRAY[Age, Sex, Pclass, SibSp, Parch, Fare], Survived)
+    FROM `layer-bigquery`.`titanic`.`passenger_features`
+  );
+"""
+    parsed = LayerSQLParser().parse(sql=sql)
+    assert parsed
+    assert isinstance(parsed, LayerAutoMLFunction)
+    assert parsed.function_type == "automl"
+    assert parsed.source_name == "`layer-bigquery`.`titanic`.`passenger_features`"
+    assert parsed.target_name == "`layer-bigquery`.`titanic`.`Survived`"
+    assert parsed.feature_columns == ["Age", "Sex", "Pclass", "SibSp", "Parch", "Fare"]
+    assert parsed.target_column == "Survived"
+    assert parsed.model_type == "classifier"
+    assert (
+        parsed.sql
+        == "select Age, Sex, Pclass, SibSp, Parch, Fare, Survived from `layer-bigquery`.`titanic`.`passenger_features`"
+    )
