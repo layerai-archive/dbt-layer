@@ -161,7 +161,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         def training_func() -> Any:
             return entrypoint_module.main(input_df)
 
-        model_decorator(target_node.name)(training_func)()  # pylint: disable=no-value-for-parameter
+        model_decorator(project_name)(training_func)()  # pylint: disable=no-value-for-parameter
         logger.debug("Trained model {}, in project {}", target_node.name, project_name)
 
         output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
