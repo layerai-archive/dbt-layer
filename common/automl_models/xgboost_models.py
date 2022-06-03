@@ -13,8 +13,8 @@ class XGBoostClassifier(AutoMLModel):
 
     def train(self, ds: TrainDataset) -> None:
         hyperparameter_grid = {
-            "max_depth": range(2, 10, 1),
-            "n_estimators": range(60, 220, 40),
+            "max_depth": [2, 4, 6, 8, 10],
+            "n_estimators": [60, 100, 140, 180],
             "learning_rate": [0.1, 0.01, 0.05],
         }
 
