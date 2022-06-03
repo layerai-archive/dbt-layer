@@ -13,8 +13,8 @@ class XGBoostClassifier(AutoMLModel):
 
     def train(self, ds: TrainDataset) -> None:
         hyperparameter_grid = {
-            "max_depth": [2, 4, 6, 8, 10],
-            "n_estimators": [60, 100, 140, 180],
+            "max_depth": [2, 6, 10, 14],
+            "n_estimators": [60, 200],
             "learning_rate": [0.1, 0.01, 0.05],
         }
 
@@ -24,7 +24,7 @@ class XGBoostClassifier(AutoMLModel):
 
         estimator = XGBClassifier(seed=42, eval_metric="mlogloss", use_label_encoder=False)
         self.model: GridSearchCV = GridSearchCV(
-            estimator=estimator, param_grid=hyperparameter_grid, scoring="accuracy", cv=3, n_jobs=-1, verbose=False
+            estimator=estimator, param_grid=hyperparameter_grid, scoring="accuracy", cv=2, n_jobs=-1, verbose=False
         )
         self.model.fit(ds.x_train, ds.y_train)
 
