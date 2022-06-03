@@ -184,7 +184,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         project_name = target_node.fqn[0]
         model_name = target_node.fqn[1]
 
-        from automl.automl import AutoML
+        from .automl import AutoML
 
         automl = AutoML(param.model_type, input_df, param.feature_columns, param.target_column)
         automl.train(project_name, model_name)
