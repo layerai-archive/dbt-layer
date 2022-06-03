@@ -50,6 +50,8 @@ layer-profile:
       dataset: [the name of your dbt dataset]
       threads: [1 or more]
       keyfile: [/path/to/bigquery/keyfile.json]
+      layer_project: [the Layer project to use for model training (opt)]
+      layer_api_key: [the API Key to access your Layer account (opt)]
 ```
 
 Now, start making predictions directly in your dbt DAG:
