@@ -46,14 +46,11 @@ class TestE2EExampleProjects:
                 "layer_project": "Layer-dbt-adapter-e2e-tests",
             }
             rendered_profile = pystache.render(dbt_profiles_template, context)
-            print("Rendered dtb profiles.yml:")
-            print(rendered_profile)
 
             dbt_profiles_path = Path(dbt_profiles_dir) / "dbt_config" / "profiles.yml"
             dbt_profiles_path.parent.mkdir()
             with open(str(dbt_profiles_path), "w+") as file:
                 file.write(rendered_profile)
-            print("WEEEEE")
             yield dbt_profiles_path
 
     @pytest.mark.parametrize(("project",), [("titanic",), ("sentiment_analysis",), ("cloth_detector",)])
