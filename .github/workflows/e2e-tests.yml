@@ -48,8 +48,6 @@ jobs:
           restore-keys: poetry-venvs-${{ runner.os }}-${{ matrix.python-version }}-
       - name: Install dbt
         run: poetry add dbt
-      - name: Setup dbt Layer profile
-        run: poetry run python ./workflow_scripts/setup_dbt_profile.py
       - name: Fail fast if on a fork as forks cannot run e2e-tests directly
         if: |
           github.event.pull_request.head.repo.full_name != github.repository &&
