@@ -1,6 +1,7 @@
 INSTALL_STAMP := .install.stamp
 POETRY := $(shell command -v poetry 2> /dev/null)
 IN_VENV := $(shell echo $(CONDA_DEFAULT_ENV)$(CONDA_PREFIX)$(VIRTUAL_ENV))
+BIG_QUERY_KEY_FILE := test/e2e/.big_query_key
 
 .DEFAULT_GOAL:=help
 
@@ -16,7 +17,18 @@ endif
 
 .PHONY: test
 test: $(INSTALL_STAMP) ## Run unit tests
-	$(POETRY) run pytest test --cov .
+	$(POETRY) run pytest test/unit --cov .
+
+provide_bigquery_creds: $(BIG_QUERY_KEY_FILE)
+$(BIG_QUERY_KEY_FILE):
+	@stty -echo
+	@printf "Enter BigQuery credentials JSON string: "
+	@read TOKEN && echo $$TOKEN > $(BIG_QUERY_KEY_FILE)
+	@stty echo
+
+.PHONY: e2e-test
+e2e-test: $(INSTALL_STAMP) $(BIG_QUERY_KEY_FILE)  ## Run e2e tests
+	$(POETRY) run pytest test/e2e --cov .
 
 .PHONY: format
 format: $(INSTALL_STAMP) ## Apply formatters
@@ -71,6 +83,7 @@ clean: ## Resets development environment.
 	@find . -depth -type d -name '*.egg-info' -delete
 	@rm -rf dist/
 	@rm -f .install.stamp
+	@rm -f test/e2e/.big_query_key
 	@find . -type f -name '*.pyc' -delete
 	@find . -type d -name "__pycache__" | xargs rm -rf {};
 	@echo 'done.'
