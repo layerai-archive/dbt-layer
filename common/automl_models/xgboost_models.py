@@ -23,7 +23,9 @@ class XGBoostClassifier(AutoMLModel):
         layer.log({"xgboost hyperparameter grid": df})
 
         estimator = XGBClassifier(seed=42, eval_metric="mlogloss", use_label_encoder=False)
-        self.model:GridSearchCV = GridSearchCV(estimator=estimator, param_grid=hyperparameter_grid, scoring="accuracy", cv=3, n_jobs=-1, verbose=False)
+        self.model: GridSearchCV = GridSearchCV(
+            estimator=estimator, param_grid=hyperparameter_grid, scoring="accuracy", cv=3, n_jobs=-1, verbose=False
+        )
         self.model.fit(ds.x_train, ds.y_train)
 
         df = pd.DataFrame({"name": self.model.best_params_.keys(), "value": self.model.best_params_.values()})
