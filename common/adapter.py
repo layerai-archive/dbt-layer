@@ -146,12 +146,15 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             input_df = raw_input_df[layer_sql_function.train_columns].reset_index(drop=True)
         logger.debug("Fetched input dataframe - {}", input_df.shape)
 
-        # build the dataframe
+        # login to Layer
         layer_api_key = self.config.credentials.layer_api_key
-        if layer_api_key is None:
-            raise RuntimeException("Missing credentials: layer_api_key.")
-        layer.login_with_api_key(layer_api_key)
-        project_name = self.config.credentials.layer_project
+        if layer_api_key is not None:
+            layer.login_with_api_key(layer_api_key)
+        else:
+            raise RuntimeException("Missing credentials: Please configure 'layer_api_key' in your 'profiles.yaml'")
+
+        # build the dataframe
+        project_name = self.get_project_name(target_node)
         logger.debug("Training model {}, in project {}", target_node.name, project_name)
         layer.init(project_name)
 
@@ -173,6 +176,11 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         )
         return response, table
 
+    def get_project_name(self, node: ManifestNode) -> str:
+        if self.config.credentials.layer_project is not None:
+            return self.config.credentials.layer_project
+        return node.fqn[0]
+
     @staticmethod
     def _get_layer_meta(node: ManifestNode) -> LayerMeta:
         return LayerMeta(**node.meta.get("layer", {}))
@@ -185,7 +193,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         input_df = self._fetch_dataframe_by_sql(source_node, param.sql)
 
-        project_name = target_node.fqn[0]
+        project_name = self.get_project_name(target_node)
         model_name = target_node.fqn[1]
 
         from .automl import AutoML
