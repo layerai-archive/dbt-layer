@@ -147,6 +147,10 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         logger.debug("Fetched input dataframe - {}", input_df.shape)
 
         # build the dataframe
+        layer_api_key = self.config.credentials.layer_api_key
+        if layer_api_key is None:
+            raise RuntimeException('Missing credentials: layer_api_key. See ')
+        layer.login_with_api_key(layer_api_key)
         project_name = self.config.credentials.layer_project
         logger.debug("Training model {}, in project {}", target_node.name, project_name)
         layer.init(project_name)
