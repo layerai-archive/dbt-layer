@@ -1,4 +1,4 @@
-from typing import Any, List, Type
+from typing import Any, List
 
 import layer
 import pandas as pd  # type: ignore
