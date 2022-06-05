@@ -1,14 +1,15 @@
 from abc import abstractmethod
 from typing import Any, List
 
-import layer
 import pandas as pd  # type: ignore
-from layer.decorators import model as model_decorator
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier  # type: ignore
 from sklearn.linear_model import LinearRegression, RidgeClassifier  # type: ignore
 from sklearn.metrics import r2_score, roc_auc_score  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor  # type: ignore
+
+import layer
+from layer.decorators import model as model_decorator
 
 
 class AutoMLModel:
