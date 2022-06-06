@@ -13,7 +13,8 @@ class LayerSqlFunction:
 
     SUPPORTED_FUNCTION_TRAIN = "train"
     SUPPORTED_FUNCTION_PREDICT = "predict"
-    SUPPORTED_FUNCTION_TYPES = [SUPPORTED_FUNCTION_TRAIN, SUPPORTED_FUNCTION_PREDICT]
+    SUPPORTED_FUNCTION_AUTOML = "automl"
+    SUPPORTED_FUNCTION_TYPES = [SUPPORTED_FUNCTION_TRAIN, SUPPORTED_FUNCTION_PREDICT, SUPPORTED_FUNCTION_AUTOML]
 
     def __init__(self, function_type: str, source_name: str, target_name: str) -> None:
         self.function_type = function_type
@@ -36,6 +37,7 @@ class LayerPredictFunction(LayerSqlFunction):
         model_name: str,
         select_columns: List[str],
         predict_columns: List[str],
+        prediction_alias: str,
         sql: str,
     ) -> None:
         super().__init__(
@@ -44,6 +46,7 @@ class LayerPredictFunction(LayerSqlFunction):
         self.model_name = model_name
         self.select_columns = select_columns
         self.predict_columns = predict_columns
+        self.prediction_alias = prediction_alias
         self.sql = sql
 
 
@@ -56,6 +59,23 @@ class LayerTrainFunction(LayerSqlFunction):
     ) -> None:
         super().__init__(function_type=self.SUPPORTED_FUNCTION_TRAIN, source_name=source_name, target_name=target_name)
         self.train_columns = train_columns
+
+
+class LayerAutoMLFunction(LayerSqlFunction):
+    def __init__(
+        self,
+        source_name: str,
+        target_name: str,
+        model_type: str,
+        feature_columns: List[str],
+        target_column: str,
+        sql: str,
+    ) -> None:
+        super().__init__(function_type=self.SUPPORTED_FUNCTION_AUTOML, source_name=source_name, target_name=target_name)
+        self.feature_columns = feature_columns
+        self.target_column = target_column
+        self.model_type = model_type
+        self.sql = sql
 
 
 def find_from_token(tokens: List[Token]) -> List[Token]:
@@ -71,11 +91,11 @@ def get_from_where_clause(select_tokens: List[Token]) -> Tuple[str, str]:
     return source, where_statement
 
 
-def get_predict_cols(brace_container_token: Token) -> List[str]:
-    _, predict_cols_token, _ = brace_container_token.tokens
-    if isinstance(predict_cols_token, sqlparse.sql.IdentifierList):
-        return [x.value for x in clean_separators(predict_cols_token.tokens)]
-    return [predict_cols_token.value]
+def get_cols_from_container(brace_container_token: Token) -> List[str]:
+    _, cols_token, _ = brace_container_token.tokens
+    if isinstance(cols_token, sqlparse.sql.IdentifierList):
+        return [x.value for x in clean_separators(cols_token.tokens)]
+    return [cols_token.value]
 
 
 def build_sql(cols: List[str], source: str, where_statement: str) -> str:
@@ -109,7 +129,9 @@ class LayerSQLParser:
             return None
         target_name = self._get_target_name_from_group(target_name_group)
 
-        if is_predict_function(layer_func):
+        if is_automl_function(layer_func):
+            return self.parse_automl(layer_func, target_name)
+        elif is_predict_function(layer_func):
             return self.parse_predict(layer_func, target_name)
         elif is_train_function(layer_func):
             return self.parse_train(layer_func, target_name)
@@ -162,13 +184,57 @@ class LayerSQLParser:
             raise ValueError(f"Invalid predict function syntax {invalid_func}")
         model_name, _, bracket_container = clean_func_tokens
         predict_model = remove_quotes(model_name.value)
-        predict_cols = get_predict_cols(bracket_container)
+        predict_cols = get_cols_from_container(bracket_container)
 
         all_columns = select_columns + list(set(predict_cols) - set(select_columns))
         sql_text = build_sql(all_columns, source, where_statement)
         sql = sqlparse.format(sql_text, keyword_case="lower", strip_whitespace=True)
 
-        return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, sql)
+        prediction_alias = layer_func_token.parent.get_alias() or "prediction"
+
+        return LayerPredictFunction(
+            source,
+            target,
+            predict_model,
+            select_columns,
+            predict_cols,
+            prediction_alias,
+            sql,
+        )
+
+    def parse_automl(self, layer_func_token: Token, target: str) -> LayerAutoMLFunction:
+
+        # We need the parent `select` statement that contains the function
+        # to get access to the selected columns and the source relation
+        select_sttmt = find_parent(layer_func_token, lambda x: isinstance(x, sqlparse.sql.Parenthesis))
+        clean_select_sttmt = []
+        if not select_sttmt:
+            raise ValueError("SQL syntax error")
+        else:
+            clean_select_sttmt = clean_separators(select_sttmt.tokens)
+
+        # sqlparse doesn't seem to parse correctly the inner contents of this parenthesis.
+        # Here, we rebuild the sql and use parse it again to get the relevant tokens
+        inner_sql_text = " ".join(x.value for x in clean_select_sttmt)
+        inner_sql = sqlparse.parse(inner_sql_text)[0]
+        clean_inner_sql = remove_tokens(inner_sql.tokens, lambda x: x.is_whitespace)
+
+        source, where_statement = get_from_where_clause(clean_inner_sql)
+
+        # extract the layer prediction function
+        clean_func_tokens = clean_separators(layer_func_token[1].tokens)
+        if len(clean_func_tokens) < 4:
+            invalid_func = " ".join(t.value for t in clean_func_tokens)
+            raise ValueError(f"Invalid automl function syntax {invalid_func}")
+        model_type_token, _, bracket_container, target_column_token = clean_func_tokens
+        model_type = remove_quotes(model_type_token.value)
+        feature_columns = get_cols_from_container(bracket_container)
+        target_column = remove_quotes(target_column_token.value)
+        all_columns = list(dict.fromkeys((feature_columns + [target_column])))
+        sql_text = build_sql(all_columns, source, where_statement)
+        sql = sqlparse.format(sql_text, keyword_case="lower", strip_whitespace=True)
+
+        return LayerAutoMLFunction(source, target, model_type, feature_columns, target_column, sql)
 
     def parse_train(self, layer_func_token: Token, target: str) -> LayerTrainFunction:
         select = find_parent(layer_func_token, lambda x: isinstance(x, sqlparse.sql.Identifier))
@@ -297,11 +363,15 @@ def find_layer_function(tokens: List[Token]) -> Optional[Token]:
 
 
 def is_predict_function(func: sqlparse.sql.Function) -> bool:
-    return func[0].value.lower() == "predict"
+    return func[0].value.lower() == LayerSqlFunction.SUPPORTED_FUNCTION_PREDICT
+
+
+def is_automl_function(func: sqlparse.sql.Function) -> bool:
+    return func[0].value.lower() == LayerSqlFunction.SUPPORTED_FUNCTION_AUTOML
 
 
 def is_train_function(func: sqlparse.sql.Function) -> bool:
-    return func[0].value.lower() == "train"
+    return func[0].value.lower() == LayerSqlFunction.SUPPORTED_FUNCTION_TRAIN
 
 
 def keyword(value: str) -> TokenPredicate:

@@ -32,13 +32,13 @@ e2e-test: $(INSTALL_STAMP) $(BIG_QUERY_KEY_FILE)  ## Run e2e tests
 
 .PHONY: format
 format: $(INSTALL_STAMP) ## Apply formatters
-	$(POETRY) run isort --profile=black --lines-after-imports=2 .
+	$(POETRY) run isort .
 	$(POETRY) run black .
 
 
 .PHONY: lint
 lint: $(INSTALL_STAMP) ## Run all linters
-	$(POETRY) run isort --profile=black --lines-after-imports=2 --check-only .
+	$(POETRY) run isort --check-only .
 	$(POETRY) run black --check . --diff
 	$(POETRY) run flake8 .
 	$(POETRY) run pylint  --recursive yes .
@@ -58,7 +58,7 @@ else
 endif
 	$(POETRY) run python -c "import dbt"
 
-.PHONY: publish 
+.PHONY: publish
 publish: ## Publish to PyPi - should only run in CI
 	@test $${PATCH_VERSION?PATCH_VERSION expected}
 	@test $${PYPI_USER?PYPI_USER expected}
@@ -69,7 +69,7 @@ publish: ## Publish to PyPi - should only run in CI
 	$(POETRY) publish --build --username $(PYPI_USER) --password $(PYPI_PASSWORD)
 	$(POETRY) version $(CURRENT_VERSION)
 
-build: test 
+build: test
 	$(POETRY) build
 
 .PHONY: clean
@@ -95,4 +95,3 @@ help: ## Show this help message.
 	@echo 'targets:'
 	@grep -E '^[8+a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo
-	
