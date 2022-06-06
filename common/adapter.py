@@ -217,6 +217,11 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             model_input = input_df[layer_sql_function.predict_columns]
             predictions = layer_model_def.predict(model_input)
             logger.debug("Prediction dataframe - {}", predictions.shape)
+            column_template = layer_sql_function.prediction_alias
+            prediction_column_count = len(predictions.columns)
+            if prediction_column_count > 1:
+                column_template += "_{ix}"
+            predictions.columns = [column_template.format(ix=ix) for ix in range(prediction_column_count)]
             select_columns_from_source = list(set(layer_sql_function.select_columns) - set(predictions.columns))
             result_df = pd.concat(
                 [

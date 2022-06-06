@@ -37,6 +37,7 @@ class LayerPredictFunction(LayerSqlFunction):
         model_name: str,
         select_columns: List[str],
         predict_columns: List[str],
+        prediction_alias: str,
         sql: str,
     ) -> None:
         super().__init__(
@@ -45,6 +46,7 @@ class LayerPredictFunction(LayerSqlFunction):
         self.model_name = model_name
         self.select_columns = select_columns
         self.predict_columns = predict_columns
+        self.prediction_alias = prediction_alias
         self.sql = sql
 
 
@@ -188,7 +190,17 @@ class LayerSQLParser:
         sql_text = build_sql(all_columns, source, where_statement)
         sql = sqlparse.format(sql_text, keyword_case="lower", strip_whitespace=True)
 
-        return LayerPredictFunction(source, target, predict_model, select_columns, predict_cols, sql)
+        prediction_alias = layer_func_token.parent.get_alias() or "prediction"
+
+        return LayerPredictFunction(
+            source,
+            target,
+            predict_model,
+            select_columns,
+            predict_cols,
+            prediction_alias,
+            sql,
+        )
 
     def parse_automl(self, layer_func_token: Token, target: str) -> LayerAutoMLFunction:
 
