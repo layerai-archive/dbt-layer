@@ -7,7 +7,6 @@ from typing import Any, Dict, Mapping, Optional, Tuple
 
 import agate  # type: ignore
 import cloudpickle  # type: ignore
-import layer
 import pandas as pd  # type: ignore
 from dbt.adapters.base.impl import BaseAdapter  # type: ignore
 from dbt.adapters.base.relation import BaseRelation  # type: ignore
@@ -18,6 +17,8 @@ from dbt.contracts.connection import AdapterResponse  # type: ignore
 from dbt.contracts.graph.manifest import Manifest, ManifestNode  # type: ignore
 from dbt.events import AdapterLogger  # type: ignore
 from dbt.exceptions import RuntimeException  # type: ignore
+
+import layer
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
