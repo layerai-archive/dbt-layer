@@ -1,0 +1,3 @@
+config-version: 2
+name: dbt_layer_bigquery
+version: 1.0

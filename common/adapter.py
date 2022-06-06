@@ -58,7 +58,6 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     def __init__(self, config: AdapterConfig):
         super().__init__(config)
         self._manifest_lazy: Optional[Manifest] = None
-        self._relation_node_map_lazy: Optional[Mapping[str, ManifestNode]] = None
 
     @property
     def _manifest(self) -> Manifest:
@@ -75,22 +74,14 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             self._manifest_lazy = manifest
         return self._manifest_lazy
 
-    @property
-    def _relation_node_map(self) -> Mapping[str, ManifestNode]:
-        if self._relation_node_map_lazy is None:
-            return self.load_relation_node_map()
-        return self._relation_node_map_lazy
-
-    def load_relation_node_map(self) -> Mapping[str, ManifestNode]:
-        if self._relation_node_map_lazy is None:
-            relation_node_map = {}
-
-            for node in self._manifest.nodes.values():
+    def _get_manifest_node_from_relation_name(self, name: str) -> Optional[Tuple[ManifestNode, BaseRelation]]:
+        for node in self._manifest.nodes.values():
+            for suffix in ["", "__dbt_tmp"]:
+                node = node.replace(alias=node.alias + suffix)
                 relation = self.Relation.create_from_node(self.config, node)
-                relation_node_map[relation.render()] = (node, relation)
-
-            self._relation_node_map_lazy = relation_node_map
-        return self._relation_node_map_lazy
+                if relation.render() == name:
+                    return node, relation
+        return None
 
     def execute(
         self, sql: str, auto_begin: bool = False, fetch: bool = False
@@ -103,13 +94,13 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         if layer_sql_function is None:
             return super().execute(sql, auto_begin, fetch)
 
-        source_node_relation = self._relation_node_map.get(layer_sql_function.source_name)
-        target_node_relation = self._relation_node_map.get(layer_sql_function.target_name)
+        source_node_relation = self._get_manifest_node_from_relation_name(layer_sql_function.source_name)
+        target_node_relation = self._get_manifest_node_from_relation_name(layer_sql_function.target_name)
 
         if not source_node_relation:
-            raise RuntimeException(f'Unable to find a source named "{layer_sql_function.source_name}"')
+            raise RuntimeException(f'Unable to find a source named "{layer_sql_function.source_name}" in sql "{sql}"')
         if not target_node_relation:
-            raise RuntimeException(f'Unable to find a target named "{layer_sql_function.target_name}"')
+            raise RuntimeException(f'Unable to find a target named "{layer_sql_function.target_name}" in sql "{sql}"')
 
         source_node, source_relation = source_node_relation
         target_node, target_relation = target_node_relation
@@ -168,7 +159,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
 
         # save the resulting dataframe to the target
-        _, table = self._load_dataframe(target_node, target_relation, output_df)
+        _, table = self._load_dataframe(target_node, output_df)
 
         response = LayerAdapterResponse(
             _message=f"LAYER MODEL TRAIN {output_df.shape[0]}",
@@ -236,7 +227,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             )
 
             # save the resulting dataframe to the target
-            _, table = self._load_dataframe(target_node, target_relation, result_df)
+            _, table = self._load_dataframe(target_node, result_df)
 
             response = LayerAdapterResponse(
                 _message=f"LAYER PREDICTION INSERT {predictions.shape[0]}",
@@ -301,9 +292,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
 
         return dataframe
 
-    def _load_dataframe(
-        self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame
-    ) -> Tuple[Dict[Any, Any], agate.Table]:
+    def _load_dataframe(self, node: ManifestNode, dataframe: pd.DataFrame) -> Tuple[Dict[Any, Any], agate.Table]:
         """
         Loads the given pandas dataframe into the given node/relation
         """

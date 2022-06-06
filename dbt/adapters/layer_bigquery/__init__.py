@@ -1,4 +1,4 @@
-from dbt.adapters.base import AdapterPlugin  # type:ignore
+from dbt.adapters.base import AdapterPlugin
 
 from dbt.adapters.layer_bigquery.connections import LayerBigQueryCredentials
 from dbt.adapters.layer_bigquery.impl import LayerBigQueryAdapter
@@ -9,5 +9,5 @@ Plugin = AdapterPlugin(
     adapter=LayerBigQueryAdapter,
     credentials=LayerBigQueryCredentials,
     include_path=layer_bigquery.PACKAGE_PATH,
-    dependencies=['bigquery']
+    dependencies=["bigquery"],
 )
