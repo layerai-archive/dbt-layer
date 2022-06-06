@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from importlib.machinery import SourceFileLoader
 from pathlib import Path, PurePosixPath
 from types import ModuleType
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import agate  # type: ignore
 import cloudpickle  # type: ignore
