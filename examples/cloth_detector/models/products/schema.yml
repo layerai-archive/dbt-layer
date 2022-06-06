@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: cloth_detections
+    description: "Includes cloth objects detected in the product images"
+    config:
+      materialized: table

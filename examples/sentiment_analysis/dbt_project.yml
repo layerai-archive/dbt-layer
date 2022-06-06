@@ -1,0 +1,29 @@
+name: 'sentiment_analysis'
+version: '1.0.0'
+config-version: 2
+
+# To start using Layer dbt Adapter, create a new profile.
+# Example:
+# layer-profile:
+#  target: dev
+#  outputs:
+#    dev:
+#      type: layer_bigquery
+#      method: service-account
+#      project: [GCP project id]
+#      dataset: [the name of your dbt dataset]
+#      threads: [1 or more]
+#      keyfile: [/path/to/bigquery/keyfile.json]
+profile: 'layer-profile'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"

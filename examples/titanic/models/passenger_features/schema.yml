@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: passenger_features
+    description: "Extracted features of the passengers for prediction"
+    config:
+      materialized: table
