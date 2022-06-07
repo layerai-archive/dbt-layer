@@ -1,7 +1,7 @@
 name: Check
 on:
   push:
-    branches-ignore: ['main']
+    branches-ignore: ["main"]
 
 jobs:
   check-package-loads:
@@ -32,8 +32,8 @@ jobs:
         uses: tj-actions/changed-files@v19.1
         with:
           base_sha: ${{ github.event.pull_request.base.sha }}
-          files: 'pyproject.toml,poetry.lock'
-          files_separator: ','
+          files: "pyproject.toml,poetry.lock"
+          files_separator: ","
       - uses: actions/setup-python@v2
         if: steps.changed-files.outputs.any_changed == 'true'
         with:
@@ -105,5 +105,6 @@ jobs:
           exit 1
       - name: Run e2e tests
         run: |
-          echo ${{ secrets.BIG_QUERY_CREDENTIALS }} > test/e2e/.big_query_key
           make e2e-test
+        env:
+          BIG_QUERY_CREDENTIALS: ${{secrets.BIG_QUERY_CREDENTIALS}}

@@ -1,4 +1,5 @@
 import logging
+import os
 import tempfile
 import uuid
 from pathlib import Path
@@ -14,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 E2E_TEST_DIR = Path(__file__).parent
 REPOSITORY_ROOT_DIR = E2E_TEST_DIR.parent.parent
-BIGQUERY_KEY_FILE = E2E_TEST_DIR / ".big_query_key"
 BIGQUERY_PROFILES_TEMPLATE_FILE = E2E_TEST_DIR / "profiles_template_bigquery.yaml"
 BIGQUERY_PROJECT_NAME = "layer-bigquery"
+BIG_QUERY_CREDENTIALS = os.getenv("BIG_QUERY_CREDENTIALS") or ""
 
 
 @pytest.fixture()
@@ -58,10 +59,14 @@ def bigquery_dataset(test_project_name: str) -> Iterator[str]:
     from google.cloud import bigquery  # type: ignore
     from google.oauth2 import service_account  # type: ignore
 
-    credentials = service_account.Credentials.from_service_account_file(
-        BIGQUERY_KEY_FILE,
-        scopes=["https://www.googleapis.com/auth/cloud-platform"],
-    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        bigquery_credentials_file = Path(tmp_dir) / "bigquery_credentials.json"
+        with open(bigquery_credentials_file, "w") as f:
+            f.write(BIG_QUERY_CREDENTIALS)
+        credentials = service_account.Credentials.from_service_account_file(
+            bigquery_credentials_file,
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
 
     client = bigquery.Client(
         credentials=credentials,
@@ -75,6 +80,10 @@ def bigquery_dataset(test_project_name: str) -> Iterator[str]:
 @pytest.fixture()
 def dbt_profiles_yaml_bigquery(bigquery_dataset: str) -> Iterable[Path]:
     with tempfile.TemporaryDirectory() as dbt_profiles_dir:
+        bigquery_credentials_file = Path(dbt_profiles_dir) / "bigquery_credentials.json"
+        with open(bigquery_credentials_file, "w") as f:
+            f.write(BIG_QUERY_CREDENTIALS)
+
         dbt_profiles_path = Path(dbt_profiles_dir) / "dbt_config" / "profiles.yml"
         dbt_profiles_path.parent.mkdir()
 
@@ -95,7 +104,7 @@ layer-profile:
   target: dev
         """.format(
             bq_dataset=bigquery_dataset,
-            bq_key_file=str(BIGQUERY_KEY_FILE),
+            bq_key_file=str(bigquery_credentials_file),
             bq_project=BIGQUERY_PROJECT_NAME,
         )
         with open(dbt_profiles_path, "w+") as file:
