@@ -164,7 +164,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         response = LayerAdapterResponse(
             _message=f"LAYER MODEL TRAIN {output_df.shape[0]}",
             rows_affected=output_df.shape[0],
-            code="LAYER",
+            code="LAYER TRAIN",
         )
         return response, table
 
@@ -196,7 +196,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         response = LayerAdapterResponse(
             _message="LAYER AUTOML COMPLETE",
             rows_affected=0,
-            code="LAYER",
+            code="LAYER AUTOML",
         )
 
         return response, None
@@ -237,7 +237,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             response = LayerAdapterResponse(
                 _message=f"LAYER PREDICTION INSERT {predictions.shape[0]}",
                 rows_affected=predictions.shape[0],
-                code="LAYER",
+                code="LAYER PREDICT",
             )
             return response, table
         except Exception as e:
