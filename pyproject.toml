@@ -15,7 +15,7 @@ dbt-core = "1.0.5"
 dbt-bigquery = "~=1.0.0"
 pandas = "1.3.5"
 sqlparse = "~=0.4.2"
-layer = "0.10.2436739687"
+layer = "0.10.2450244165"
 scikit-learn = "1.0.2"
 
 [tool.poetry.dev-dependencies]
