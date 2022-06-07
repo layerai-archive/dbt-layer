@@ -1,16 +1,17 @@
+
 layer-profile:
   outputs:
     dev:
-      dataset: {{dataset}}
+      dataset: {bq_dataset}
       timeout_seconds: 300
-      keyfile: {{bq_key_file}}
+      keyfile: {bq_key_file}
       location: US
       method: service-account
       priority: interactive
-      project: {{bq_project}}
+      project: {bq_project}
       threads: 1
       type: layer_bigquery
       fixed_retries: 1
-      layer_configfile: {{layer_config_file}}
-      layer_project: {{layer_project}}
+      layer_configfile: {layer_config_file}
+      layer_project: {layer_project}
   target: dev

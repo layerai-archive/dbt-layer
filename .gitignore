@@ -97,4 +97,6 @@ venv/
 
 # make outputs
 .install.stamp
+
+# keys
 test/e2e/.big_query_key
