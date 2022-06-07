@@ -164,7 +164,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         )
         return response, table
 
-    def login_layer(self):
+    def login_layer(self) -> None:
         layer_api_key = self.config.credentials.layer_api_key
         if layer_api_key is not None:
             layer.login_with_api_key(layer_api_key)
