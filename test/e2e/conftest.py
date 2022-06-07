@@ -36,7 +36,7 @@ def test_project_name(request: pytest.FixtureRequest) -> str:
 
 @pytest.fixture()
 async def layer_config() -> Config:
-    return await ConfigManager().refresh()
+    return await ConfigManager().refresh(allow_guest=True)
 
 
 @pytest.fixture()
