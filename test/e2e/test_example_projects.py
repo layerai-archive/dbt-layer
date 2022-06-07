@@ -1,10 +1,12 @@
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List
 
 import pytest
+from dbt.contracts.results import RunExecutionResult
+from dbt.logger import log_manager
+from dbt.main import handle_and_check
 
 from .conftest import REPOSITORY_ROOT_DIR
 
@@ -20,46 +22,50 @@ class TestE2EExampleProjects:
             shutil.copytree(EXAMPLES_DIR, tmp_examples_dir, dirs_exist_ok=True)
             yield tmp_examples_dir
 
-    @pytest.mark.parametrize(
-        ("example_project",),
-        [
-            ("titanic",),
-            # ("sentiment_analysis",),
-            # ("cloth_detector",),
-        ],
-    )
-    def test_run_example_project(
-        self, example_project: str, dbt_examples_dir: Path, dbt_profiles_yaml_bigquery: Path
-    ) -> None:
-        project_path = dbt_examples_dir / example_project
-        result = subprocess.run(
-            [
-                "dbt",
-                "seed",
-                "--project-dir",
-                str(project_path),
-                "--profiles-dir",
-                str(dbt_profiles_yaml_bigquery.parent),
-            ],
-            capture_output=True,
-            text=True,
-        )
-        print(result.stdout)
-        assert "Completed successfully" in result.stdout
-        assert result.stderr == ""
+    def test_run_titanic(self, dbt_examples_dir: Path, dbt_profiles_yaml_bigquery: Path) -> None:
+        project_path = dbt_examples_dir / "titanic"
 
-        result = subprocess.run(
-            [
-                "dbt",
-                "run",
-                "--project-dir",
-                str(project_path),
-                "--profiles-dir",
-                str(dbt_profiles_yaml_bigquery.parent),
-            ],
-            capture_output=True,
-            text=True,
+        results = run_dbt(
+            ["seed", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
         )
-        print(result.stdout)
-        assert "Completed successfully" in result.stdout
-        assert result.stderr == ""
+        assert len(results.results) == 1
+        resp0 = results.results[0].adapter_response
+        assert resp0["rows_affected"] == 891
+        assert resp0["code"] == "INSERT"
+
+        results = run_dbt(
+            ["run", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
+        )
+        assert len(results.results) == 2
+        resp0 = results.results[0].adapter_response
+        assert resp0["code"] == "CREATE TABLE"
+        assert resp0["rows_affected"] == 891
+        resp1 = results.results[1].adapter_response
+        assert resp1["code"] == "LAYER PREDICT"
+        assert resp1["rows_affected"] == 891
+
+    def test_run_sentiment_analysis(self, dbt_examples_dir: Path, dbt_profiles_yaml_bigquery: Path) -> None:
+        project_path = dbt_examples_dir / "sentiment_analysis"
+
+        results = run_dbt(
+            ["seed", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
+        )
+        assert len(results.results) == 1
+        resp0 = results.results[0].adapter_response
+        assert resp0["rows_affected"] == 20
+        assert resp0["code"] == "INSERT"
+
+        results = run_dbt(
+            ["run", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
+        )
+        assert len(results.results) == 1
+        resp0 = results.results[0].adapter_response
+        assert resp0["code"] == "LAYER PREDICT"
+        assert resp0["rows_affected"] == 20
+
+
+def run_dbt(args: List[str], expect_success: bool = True) -> RunExecutionResult:
+    log_manager.reset_handlers()
+    results, succeeded = handle_and_check(args=args)
+    assert succeeded == expect_success
+    return results

@@ -65,12 +65,22 @@ def layer_project(
 
 @pytest.fixture()
 def bigquery_dataset(test_project_name: str) -> Iterator[str]:
-    from google.cloud import bigquery
-
     yield test_project_name
 
     # clean up the bigquery dataset after tests are run
-    client = bigquery.Client()
+    from google.cloud import bigquery
+    from google.oauth2 import service_account
+
+    credentials = service_account.Credentials.from_service_account_file(
+        BIGQUERY_KEY_FILE,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+
+    client = bigquery.Client(
+        credentials=credentials,
+        project=credentials.project_id,
+    )
+
     dataset_id = f"{BIGQUERY_PROJECT_NAME}.{test_project_name}"
     client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
 
