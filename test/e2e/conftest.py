@@ -55,8 +55,8 @@ def bigquery_dataset(test_project_name: str) -> Iterator[str]:
     yield test_project_name
 
     # clean up the bigquery dataset after tests are run
-    from google.cloud import bigquery
-    from google.oauth2 import service_account
+    from google.cloud import bigquery  # type: ignore
+    from google.oauth2 import service_account  # type: ignore
 
     credentials = service_account.Credentials.from_service_account_file(
         BIGQUERY_KEY_FILE,

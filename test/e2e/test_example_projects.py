@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Iterable, List
 
 import pytest
-from dbt.contracts.results import RunExecutionResult
-from dbt.logger import log_manager
-from dbt.main import handle_and_check
+from dbt.contracts.results import RunExecutionResult  # type: ignore
+from dbt.logger import log_manager  # type: ignore
+from dbt.main import handle_and_check  # type: ignore
 
 from .conftest import REPOSITORY_ROOT_DIR
 
@@ -18,8 +18,8 @@ class TestE2EExampleProjects:
     @pytest.fixture(scope="session")
     def dbt_examples_dir(self) -> Iterable[Path]:
         with tempfile.TemporaryDirectory() as tmp_path:
-            tmp_examples_dir = Path(tmp_path)
-            shutil.copytree(EXAMPLES_DIR, tmp_examples_dir, dirs_exist_ok=True)
+            tmp_examples_dir = Path(tmp_path) / "examples"
+            shutil.copytree(EXAMPLES_DIR, tmp_examples_dir)
             yield tmp_examples_dir
 
     def test_run_titanic(self, dbt_examples_dir: Path, dbt_profiles_yaml_bigquery: Path) -> None:
