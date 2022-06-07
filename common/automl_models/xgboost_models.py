@@ -1,4 +1,3 @@
-import pandas as pd  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 from sklearn.model_selection import GridSearchCV  # type: ignore
 from xgboost import XGBClassifier
