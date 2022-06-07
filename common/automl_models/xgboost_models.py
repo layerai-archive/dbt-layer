@@ -13,14 +13,12 @@ class XGBoostClassifier(AutoMLModel):
 
     def train(self, ds: TrainDataset) -> None:
         hyperparameter_grid = {
-            "max_depth": [2, 6, 10, 14],
+            "max_depth": [2, 6, 10],
             "n_estimators": [60, 200],
             "learning_rate": [0.1, 0.01, 0.05],
         }
 
-        df = pd.DataFrame({"name": hyperparameter_grid.keys(), "value": hyperparameter_grid.values()})
-        df = df.set_index("name")
-        layer.log({"xgboost hyperparameter grid": df})
+        layer.log({"xgboost hyperparameter grid": hyperparameter_grid})
 
         estimator = XGBClassifier(seed=42, eval_metric="mlogloss", use_label_encoder=False)
         self.model: GridSearchCV = GridSearchCV(
@@ -28,9 +26,7 @@ class XGBoostClassifier(AutoMLModel):
         )
         self.model.fit(ds.x_train, ds.y_train)
 
-        df = pd.DataFrame({"name": self.model.best_params_.keys(), "value": self.model.best_params_.values()})
-        df = df.set_index("name")
-        layer.log({"xgboost best parameters": df})
+        layer.log({"xgboost best parameters": self.model.best_params_})
         preds = self.model.predict(ds.x_test)
         self.score = accuracy_score(ds.y_test, preds)
         self.feature_importances = self.model.best_estimator_.feature_importances_

@@ -42,10 +42,7 @@ class AutoML:
 
         def log_models(trained_models: List[AutoMLModel]) -> None:
             model_comparison = [[model.name, model.score] for model in trained_models]
-            df = pd.DataFrame(data=model_comparison, columns=["model", "score"])
-            df = df.sort_values(by=["score"], ascending=False)
-            df = df.set_index("model")
-            layer.log({"models": df})
+            layer.log({"models": model_comparison})
 
         def training_func() -> Any:
             # Prepare dataset
