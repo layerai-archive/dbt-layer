@@ -16,7 +16,7 @@ class XGBoostClassifier(AutoMLModel):
         hyperparameter_grid = {
             "max_depth": [2, 6, 10],
             "n_estimators": [60, 200],
-            "learning_rate": [0.1, 0.01, 0.05],
+            "learning_rate": [0.1, 0.01],
         }
 
         layer.log({"xgboost hyperparameter grid": hyperparameter_grid})

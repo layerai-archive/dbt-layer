@@ -41,7 +41,7 @@ class AutoML:
             raise Exception(f"Model type '{self.model_type}' not supported yet!")
 
         def log_models(trained_models: List[AutoMLModel]) -> None:
-            model_comparison = [[model.name, model.score] for model in trained_models]
+            model_comparison = {model.name: model.score for model in trained_models}
             layer.log({"models": model_comparison})
 
         def training_func() -> Any:
@@ -86,7 +86,4 @@ class AutoML:
 
             return trained_model
 
-        # Register this model to Layer
-        layer.login()
-        layer.init(project_name)
         model_decorator(model_name)(training_func)()  # pylint: disable=no-value-for-parameter
