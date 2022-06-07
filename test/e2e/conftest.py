@@ -51,19 +51,6 @@ def layer_client(layer_client_config: ClientConfig) -> Iterator[LayerClient]:
 
 
 @pytest.fixture()
-def layer_project(
-    test_project_name: str,
-    layer_client: LayerClient,
-) -> Iterator[str]:
-    yield test_project_name
-
-    # clean up the layer project after tests are run
-    project_id = layer_client.project_service_client.get_project_id_and_org_id(test_project_name).project_id
-    if project_id:
-        layer_client.project_service_client.remove_project(project_id)
-
-
-@pytest.fixture()
 def bigquery_dataset(test_project_name: str) -> Iterator[str]:
     yield test_project_name
 
@@ -86,21 +73,32 @@ def bigquery_dataset(test_project_name: str) -> Iterator[str]:
 
 
 @pytest.fixture()
-def dbt_profiles_yaml_bigquery(layer_project: str, bigquery_dataset: str) -> Iterable[Path]:
+def dbt_profiles_yaml_bigquery(bigquery_dataset: str) -> Iterable[Path]:
     with tempfile.TemporaryDirectory() as dbt_profiles_dir:
-        with open(BIGQUERY_PROFILES_TEMPLATE_FILE, "r") as file:
-            dbt_profiles_template = file.read().strip("\n")
-        context = {
-            "bq_dataset": bigquery_dataset,
-            "bq_key_file": str(BIGQUERY_KEY_FILE),
-            "bq_project": BIGQUERY_PROJECT_NAME,
-            "layer_config_file": str(Path("~/.layer/config.json").expanduser()),
-            "layer_project": layer_project,
-        }
-        rendered_profile = dbt_profiles_template.format(**context)
-
         dbt_profiles_path = Path(dbt_profiles_dir) / "dbt_config" / "profiles.yml"
         dbt_profiles_path.parent.mkdir()
+
+        dbt_profiles = """
+layer-profile:
+  outputs:
+    dev:
+      dataset: {bq_dataset}
+      timeout_seconds: 300
+      keyfile: {bq_key_file}
+      location: US
+      method: service-account
+      priority: interactive
+      project: {bq_project}
+      threads: 1
+      type: layer_bigquery
+      fixed_retries: 1
+  target: dev
+        """.format(
+            bq_dataset=bigquery_dataset,
+            bq_key_file=str(BIGQUERY_KEY_FILE),
+            bq_project=BIGQUERY_PROJECT_NAME,
+        )
         with open(dbt_profiles_path, "w+") as file:
-            file.write(rendered_profile)
+            file.write(dbt_profiles)
+
         yield dbt_profiles_path
