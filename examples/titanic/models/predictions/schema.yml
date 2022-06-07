@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: predictions
+    description: "Survival predictions"
+    config:
+      materialized: table

@@ -3,11 +3,10 @@ from dataclasses import dataclass
 from importlib.machinery import SourceFileLoader
 from pathlib import Path, PurePosixPath
 from types import ModuleType
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import agate  # type: ignore
 import cloudpickle  # type: ignore
-import layer
 import pandas as pd  # type: ignore
 from dbt.adapters.base.impl import BaseAdapter  # type: ignore
 from dbt.adapters.base.relation import BaseRelation  # type: ignore
@@ -18,6 +17,8 @@ from dbt.contracts.connection import AdapterResponse  # type: ignore
 from dbt.contracts.graph.manifest import Manifest, ManifestNode  # type: ignore
 from dbt.events import AdapterLogger  # type: ignore
 from dbt.exceptions import RuntimeException  # type: ignore
+
+import layer
 from layer.decorators import model as model_decorator
 
 from . import pandas_helper
@@ -57,7 +58,6 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     def __init__(self, config: AdapterConfig):
         super().__init__(config)
         self._manifest_lazy: Optional[Manifest] = None
-        self._relation_node_map_lazy: Optional[Mapping[str, ManifestNode]] = None
 
     @property
     def _manifest(self) -> Manifest:
@@ -74,22 +74,14 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             self._manifest_lazy = manifest
         return self._manifest_lazy
 
-    @property
-    def _relation_node_map(self) -> Mapping[str, ManifestNode]:
-        if self._relation_node_map_lazy is None:
-            return self.load_relation_node_map()
-        return self._relation_node_map_lazy
-
-    def load_relation_node_map(self) -> Mapping[str, ManifestNode]:
-        if self._relation_node_map_lazy is None:
-            relation_node_map = {}
-
-            for node in self._manifest.nodes.values():
+    def _get_manifest_node_from_relation_name(self, name: str) -> Optional[Tuple[ManifestNode, BaseRelation]]:
+        for node in self._manifest.nodes.values():
+            for suffix in ["", "__dbt_tmp"]:
+                node = node.replace(alias=node.alias + suffix)
                 relation = self.Relation.create_from_node(self.config, node)
-                relation_node_map[relation.render()] = (node, relation)
-
-            self._relation_node_map_lazy = relation_node_map
-        return self._relation_node_map_lazy
+                if relation.render() == name:
+                    return node, relation
+        return None
 
     def execute(
         self, sql: str, auto_begin: bool = False, fetch: bool = False
@@ -102,13 +94,13 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         if layer_sql_function is None:
             return super().execute(sql, auto_begin, fetch)
 
-        source_node_relation = self._relation_node_map.get(layer_sql_function.source_name)
-        target_node_relation = self._relation_node_map.get(layer_sql_function.target_name)
+        source_node_relation = self._get_manifest_node_from_relation_name(layer_sql_function.source_name)
+        target_node_relation = self._get_manifest_node_from_relation_name(layer_sql_function.target_name)
 
         if not source_node_relation:
-            raise RuntimeException(f'Unable to find a source named "{layer_sql_function.source_name}"')
+            raise RuntimeException(f'Unable to find a source named "{layer_sql_function.source_name}" in sql "{sql}"')
         if not target_node_relation:
-            raise RuntimeException(f'Unable to find a target named "{layer_sql_function.target_name}"')
+            raise RuntimeException(f'Unable to find a target named "{layer_sql_function.target_name}" in sql "{sql}"')
 
         source_node, source_relation = source_node_relation
         target_node, target_relation = target_node_relation
@@ -146,21 +138,28 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             input_df = raw_input_df[layer_sql_function.train_columns].reset_index(drop=True)
         logger.debug("Fetched input dataframe - {}", input_df.shape)
 
+        # login to Layer
+        layer_api_key = self.config.credentials.layer_api_key
+        if layer_api_key is not None:
+            layer.login_with_api_key(layer_api_key)
+        else:
+            raise RuntimeException("Missing credentials: Please configure 'layer_api_key' in your 'profiles.yaml'")
+
         # build the dataframe
-        project_name = self.config.credentials.layer_project
+        project_name = self.get_project_name(target_node)
         logger.debug("Training model {}, in project {}", target_node.name, project_name)
         layer.init(project_name)
 
         def training_func() -> Any:
             return entrypoint_module.main(input_df)
 
-        model_decorator(target_node.name)(training_func)()  # pylint: disable=no-value-for-parameter
+        model_decorator(project_name)(training_func)()  # pylint: disable=no-value-for-parameter
         logger.debug("Trained model {}, in project {}", target_node.name, project_name)
 
         output_df = pd.DataFrame.from_records([[target_node.name]], columns=["name"])
 
         # save the resulting dataframe to the target
-        _, table = self._load_dataframe(target_node, target_relation, output_df)
+        _, table = self._load_dataframe(target_node, output_df)
 
         response = LayerAdapterResponse(
             _message=f"LAYER MODEL TRAIN {output_df.shape[0]}",
@@ -168,6 +167,11 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             code="LAYER",
         )
         return response, table
+
+    def get_project_name(self, node: ManifestNode) -> str:
+        if self.config.credentials.layer_project is not None:
+            return self.config.credentials.layer_project
+        return node.fqn[0]
 
     @staticmethod
     def _get_layer_meta(node: ManifestNode) -> LayerMeta:
@@ -181,7 +185,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         input_df = self._fetch_dataframe_by_sql(source_node, param.sql)
 
-        project_name = target_node.fqn[0]
+        project_name = self.get_project_name(target_node)
         model_name = target_node.fqn[1]
 
         from .automl import AutoML
@@ -213,6 +217,11 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             model_input = input_df[layer_sql_function.predict_columns]
             predictions = layer_model_def.predict(model_input)
             logger.debug("Prediction dataframe - {}", predictions.shape)
+            column_template = layer_sql_function.prediction_alias
+            prediction_column_count = len(predictions.columns)
+            if prediction_column_count > 1:
+                column_template += "_{ix}"
+            predictions.columns = [column_template.format(ix=ix) for ix in range(prediction_column_count)]
             select_columns_from_source = list(set(layer_sql_function.select_columns) - set(predictions.columns))
             result_df = pd.concat(
                 [
@@ -223,7 +232,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             )
 
             # save the resulting dataframe to the target
-            _, table = self._load_dataframe(target_node, target_relation, result_df)
+            _, table = self._load_dataframe(target_node, result_df)
 
             response = LayerAdapterResponse(
                 _message=f"LAYER PREDICTION INSERT {predictions.shape[0]}",
@@ -288,9 +297,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
 
         return dataframe
 
-    def _load_dataframe(
-        self, node: ManifestNode, relation: BaseRelation, dataframe: pd.DataFrame
-    ) -> Tuple[Dict[Any, Any], agate.Table]:
+    def _load_dataframe(self, node: ManifestNode, dataframe: pd.DataFrame) -> Tuple[Dict[Any, Any], agate.Table]:
         """
         Loads the given pandas dataframe into the given node/relation
         """
