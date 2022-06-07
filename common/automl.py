@@ -1,9 +1,8 @@
 from typing import Any, List
 
-import layer
 import pandas as pd  # type: ignore
-from layer.decorators import model as model_decorator
 
+import layer
 from common.automl_models.base_model import AutoMLModel, TrainDataset
 from common.automl_models.sklearn_models import (
     ScikitLearnAdaBoostClassifier,
@@ -14,6 +13,7 @@ from common.automl_models.sklearn_models import (
     ScikitLearnRidgeClassifier,
 )
 from common.automl_models.xgboost_models import XGBoostClassifier
+from layer.decorators import model as model_decorator
 
 
 class AutoML:
