@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List
+from typing import List
 
 import pandas as pd  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
@@ -46,7 +46,6 @@ class AutoMLModel:
         Defines the model type
         :return: Model type
         """
-
 
     @abstractmethod
     def train(self, dataset: TrainDataset) -> None:
