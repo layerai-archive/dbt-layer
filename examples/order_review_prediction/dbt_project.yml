@@ -3,7 +3,7 @@ name: 'order_review_prediction'
 version: '1.0.0'
 config-version: 2
 
-profile: 'burak-layer-profile'
+profile: 'layer-profile'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]

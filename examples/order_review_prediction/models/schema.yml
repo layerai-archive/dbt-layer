@@ -24,15 +24,5 @@ models:
           - not_null
         description: This is a unique identifier for an order
 
-  - name: training_data
-    description: This table has final training data which has combination of features based on orders and items.
-
-    columns:
-      - name: order_id
-        tests:
-          - unique
-          - not_null
-        description: This is a unique identifier for an order
-
   - name: predictions
     description: Predictions from Order Review ML Model
