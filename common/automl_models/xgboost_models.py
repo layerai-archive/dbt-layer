@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score,r2_score  # type: ignore
+from sklearn.metrics import accuracy_score, r2_score  # type: ignore
 from sklearn.model_selection import GridSearchCV  # type: ignore
 from xgboost import XGBClassifier, XGBRegressor
 
@@ -38,8 +38,6 @@ class XGBoostClassifier(AutoMLModel):
         return self.score > score
 
 
-
-
 class XGBoostRegressor(AutoMLModel):
     name = "XGBoost XGBRegressor"
     model_type = AutoMLModel.REGRESSOR
@@ -56,7 +54,7 @@ class XGBoostRegressor(AutoMLModel):
 
         layer.log({"xgboost hyperparameter grid": hyperparameter_grid})
 
-        estimator = XGBRegressor(n_estimators=1000, objective='reg:squarederror')
+        estimator = XGBRegressor(n_estimators=1000, objective="reg:squarederror")
         self.model: GridSearchCV = GridSearchCV(
             estimator=estimator, param_grid=hyperparameter_grid, cv=2, n_jobs=-1, verbose=False
         )
