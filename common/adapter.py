@@ -139,11 +139,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         logger.debug("Fetched input dataframe - {}", input_df.shape)
 
         # login to Layer
-        layer_api_key = self.config.credentials.layer_api_key
-        if layer_api_key is not None:
-            layer.login_with_api_key(layer_api_key)
-        else:
-            raise RuntimeException("Missing credentials: Please configure 'layer_api_key' in your 'profiles.yaml'")
+        self.login_layer()
 
         # build the dataframe
         project_name = self.get_project_name(target_node)
@@ -164,9 +160,16 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         response = LayerAdapterResponse(
             _message=f"LAYER MODEL TRAIN {output_df.shape[0]}",
             rows_affected=output_df.shape[0],
-            code="LAYER",
+            code="LAYER TRAIN",
         )
         return response, table
+
+    def login_layer(self) -> None:
+        layer_api_key = self.config.credentials.layer_api_key
+        if layer_api_key is not None:
+            layer.login_with_api_key(layer_api_key)
+        else:
+            raise RuntimeException("Missing credentials: Please configure 'layer_api_key' in your 'profiles.yaml'")
 
     def get_project_name(self, node: ManifestNode) -> str:
         if self.config.credentials.layer_project is not None:
@@ -185,8 +188,15 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         input_df = self._fetch_dataframe_by_sql(source_node, param.sql)
 
-        project_name = self.get_project_name(target_node)
         model_name = target_node.fqn[1]
+
+        # login to Layer
+        self.login_layer()
+
+        # init project
+        project_name = self.get_project_name(target_node)
+        logger.debug("Training AutoML model {}, in Layer project {}", model_name, project_name)
+        layer.init(project_name)
 
         from .automl import AutoML
 
@@ -196,10 +206,13 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         response = LayerAdapterResponse(
             _message="LAYER AUTOML COMPLETE",
             rows_affected=0,
-            code="LAYER",
+            code="LAYER AUTOML",
         )
 
-        return response, None
+        output_df = pd.DataFrame(data=[[project_name, model_name]], columns=["project_name", "model_name"])
+        _, table = self._load_dataframe(target_node, output_df)
+
+        return response, table
 
     def _run_layer_predict(
         self,
@@ -237,7 +250,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             response = LayerAdapterResponse(
                 _message=f"LAYER PREDICTION INSERT {predictions.shape[0]}",
                 rows_affected=predictions.shape[0],
-                code="LAYER",
+                code="LAYER PREDICT",
             )
             return response, table
         except Exception as e:
