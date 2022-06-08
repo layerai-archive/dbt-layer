@@ -1,27 +1,30 @@
-# Predicting Titanic survivals in dbt DAG
+# Predicting Order Reviews in dbt DAG
 
-In this tutorial, we will see how to build an end-to-end ML pipeline with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). 
+In this e-commerce example walk through, we will train a machine learning model to predict order reviews in the middle of dbt DAG with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
 
-The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
+We will use `layer.automl()` functionality to train an ML model based on the Brazilian e-commerce company, [OLIST’s datasets](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).  
 
-In this example, we use a pre-trained model to apply predictions to a dataset. We are using the [Titanic survival model](https://app.layer.ai/layer/titanic) available as a public project in [Layer.ai](https://layer.ai/) to illustrate how this works.
-
-We do this in a dbt pipeline with two stages:
-
-- First, we build a dbt model to shape our data into the features required by the model. We call this dbt model `passenger_features`.
-- Then, we build a second dbt model which applies the [Titanic survival model](https://app.layer.ai/layer/titanic) to the `passenger_features` data to predict the survival of the Titanic passengers. 
-
-The Layer dbt adapter provides a simple SQL function that seamlessly integrates the ML Model in the dbt pipeline without the need to step out from our familiar SQL language.  
-
-This is all the code we need to apply our ML model:
+This is all the SQL we need to train our ML model within the dbt DAG. You just pass Layer the model type, input features and the target column we want to predict:
 
 ```sql
-SELECT
-       PassengerId,
-       layer.predict("layer/titanic/models/survival_model:4.8",ARRAY[Pclass, Sex, Age, SibSp, Parch, Fare])
-FROM
-     {{ref('passenger_features')}}
+SELECT order_id,
+       layer.automl(
+           -- This is a regression problem
+           'regressor',
+           -- Data (input features) to train our model
+           ARRAY[
+           days_between_purchase_and_delivery, order_approved_late,
+           actual_delivery_vs_expectation_bucket, total_order_price, total_order_freight, is_multiItems_order,seller_shipped_late],
+           -- Target column we want to predict
+           review_score
+       )
+FROM {{ ref('training_data') }}
 ```
+
+Once you run this SQL:
+1. Layer will try many different machine learning models with many parameters to find the best one for your data
+2. Once the training done, Layer will register the model to your Layer account
+3. Then, you will be able to fetch the model and use it inside dbt DAG. [Click here](./models/predictions.sql) to see an example in this project.
 
 The resulting dbt pipeline should look like this:
 
@@ -30,20 +33,17 @@ The resulting dbt pipeline should look like this:
 
 ## How to run
 
-First, install the open-source [Layer dbt Adapter](https://github.com/layerai/dbt-adapters) corresponding to your Data Warehouse of choice. 
+1. First, [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
+2. Go to [app.layer.ai](https://app.layer.ai) > **Settings** (Cog Icon by your profile photo) > **Developer** > **Create API key** to get your Layer API Key. 
+
+3. Install the open-source [Layer dbt Adapter](https://github.com/layerai/dbt-adapters) corresponding to your Data Warehouse of choice. 
 At the moment, we only support Google BigQuery (more to come soon).
 
 ```shell
 pip install dbt-layer-bigquery -U -q
 ```
 
-The machine learning model we are going to use is a Scikit-Learn model, let's install the required library:
-
-```shell
-pip install scikit-learn==1.0.2
-```
-
-Then, add a new BigQuery profile to your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile/).
+3. Add a new BigQuery profile to your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile/).
 Name it as `layer-profile` to match the example code, and don't forget to set `type: layer_bigquery` for Layer to work. 
 
 Here is a sample profile:
@@ -59,36 +59,24 @@ layer-profile:
       dataset: [the name of your dbt dataset]
       threads: [1 or more]
       keyfile: [/path/to/bigquery/keyfile.json]
+      layer_api_key: [Your Layer api key]
 ```
 
-Now, are are ready to run the example. 
 
-To get the code, clone this repo, and go to the `titanic` example folder:
+4. Now, we are ready to run our dbt DAG. To get the code, clone this repo, and go to the `titanic` example folder:
 ```shell
-git clone https://github.com/layerai/examples-dbt
-cd examples-dbt/titanic
+https://github.com/layerai/dbt-layer
+cd dbt-layer/examples/order_review_prediction
 ```
 
-The example is self-contained and includes sample data that we need to insert in our DWH. 
-Seed the sample dataset [passengers.csv](seeds/passengers.csv), which lists the Titanic passengers and their known data.
-This dataset comes from the [Titanic Kaggle Project](https://www.kaggle.com/c/titanic) 
+5. The example is self-contained and includes [sample data](./seeds) that we need to insert in our DWH. Seed the datasets with: 
 
 ```shell
 dbt seed
 ```
 
-Finally, you can run the project:
+6. Finally, you can run the project:
 
 ```shell
 dbt run
 ```
-
-## Machine Learning (ML) Model
-
-In this dbt example, we use a pre-trained [survival](https://app.layer.ai/layer/titanic/models/survival_model) machine learning model from [Layer](https://layer.ai/).
-
-This model was trained on [Titanic Kaggle Project](https://www.kaggle.com/c/titanic) data from [Kaggle](https://www.kaggle.com/) and can be used the predict the survivals of the Titanic disaster.
-
-To learn more about this machine learning model:
-
-https://app.layer.ai/layer/titanic
