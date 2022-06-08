@@ -169,7 +169,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         if layer_api_key is not None:
             layer.login_with_api_key(layer_api_key)
         else:
-            raise RuntimeException("Missing credentials: Please configure 'layer_api_key' in your 'profiles.yaml'")
+            raise RuntimeException("Missing credentials: Please configure 'layer_api_key' in your 'profiles.yaml'.")
 
     def get_project_name(self, node: ManifestNode) -> str:
         if self.config.credentials.layer_project is not None:
@@ -188,7 +188,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         input_df = self._fetch_dataframe_by_sql(source_node, param.sql)
 
-        model_name = target_node.fqn[1]
+        model_name = target_node.fqn[-1]
 
         # login to Layer
         self.login_layer()
@@ -226,7 +226,20 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             # load source dataframe
             input_df = self._fetch_dataframe_by_sql(source_node, layer_sql_function.sql)
             logger.debug("Fetched input dataframe - {}", input_df.shape)
+
+            # Users can use the full path for fetching models. If they are authenticated, they can also use the model
+            # name as the path. So, we try to log in and init project, only if we have the Layer api key in the dbt
+            # profile
+            if self.config.credentials.layer_api_key:
+                self.login_layer()
+                layer.init(self.get_project_name(target_node))
+
+            print(self.get_project_name(target_node))
+            print(layer_sql_function.model_name)
+
+            # Fetch the model
             layer_model_def = layer.get_model(layer_sql_function.model_name)
+
             model_input = input_df[layer_sql_function.predict_columns]
             predictions = layer_model_def.predict(model_input)
             logger.debug("Prediction dataframe - {}", predictions.shape)
