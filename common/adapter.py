@@ -234,9 +234,6 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
                 self.login_layer()
                 layer.init(self.get_project_name(target_node))
 
-            print(self.get_project_name(target_node))
-            print(layer_sql_function.model_name)
-
             # Fetch the model
             layer_model_def = layer.get_model(layer_sql_function.model_name)
 
