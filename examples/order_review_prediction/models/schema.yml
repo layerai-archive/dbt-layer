@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: orders
+    description: This table has basic information about an order
+
+    columns:
+      - name: order_id
+        description: This is a unique identifier for an order
+        tests:
+          - unique
+          - not_null
+
+      - name: first_name
+        description: Customer's first name. PII.
+
+  - name: items
+    description: This table has basic information about items in an order
+
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+        description: This is a unique identifier for an order
+
+  - name: predictions
+    description: Predictions from Order Review ML Model
