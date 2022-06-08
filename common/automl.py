@@ -12,7 +12,7 @@ from common.automl_models.sklearn_models import (
     ScikitLearnRandomForestClassifier,
     ScikitLearnRidgeClassifier,
 )
-from common.automl_models.xgboost_models import XGBoostClassifier
+from common.automl_models.xgboost_models import XGBoostClassifier, XGBoostRegressor
 from layer.decorators import model as model_decorator
 
 
@@ -27,6 +27,7 @@ class AutoML:
         ScikitLearnDecisionTreeRegressor,
         # xgboost models
         XGBoostClassifier,
+        XGBoostRegressor,
     ]
 
     def __init__(self, model_type: str, df: pd.DataFrame, features: List[str], target: str) -> None:
