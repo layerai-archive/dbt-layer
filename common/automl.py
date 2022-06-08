@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Type
 
 import pandas as pd  # type: ignore
 
@@ -17,7 +17,7 @@ from layer.decorators import model as model_decorator
 
 
 class AutoML:
-    automl_models: Any = [
+    automl_models: List[Type[AutoMLModel]] = [
         # sklearn models
         ScikitLearnRandomForestClassifier,
         ScikitLearnDecisionTreeClassifier,

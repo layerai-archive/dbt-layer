@@ -7,8 +7,12 @@ from .base_model import AutoMLModel, TrainDataset
 
 
 class ScikitLearnLinearRegression(AutoMLModel):
+
+    name = "Scikit-Learn LinearRegression"
+    model_type = AutoMLModel.REGRESSOR
+
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn LinearRegression", AutoMLModel.REGRESSOR)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         model = LinearRegression(normalize=True, fit_intercept=False, copy_X=True)
@@ -24,8 +28,12 @@ class ScikitLearnLinearRegression(AutoMLModel):
 
 
 class ScikitLearnDecisionTreeRegressor(AutoMLModel):
+
+    name = "Scikit-Learn DecisionTreeRegressor"
+    model_type = AutoMLModel.REGRESSOR
+
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn DecisionTreeRegressor", AutoMLModel.REGRESSOR)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         model = DecisionTreeRegressor(max_depth=7)
@@ -42,8 +50,11 @@ class ScikitLearnDecisionTreeRegressor(AutoMLModel):
 
 
 class ScikitLearnRandomForestClassifier(AutoMLModel):
+    name = "Scikit-Learn RandomForestClassifier"
+    model_type = AutoMLModel.CLASSIFIER
+
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn RandomForestClassifier", AutoMLModel.CLASSIFIER)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         model = RandomForestClassifier()
@@ -60,8 +71,11 @@ class ScikitLearnRandomForestClassifier(AutoMLModel):
 
 
 class ScikitLearnRidgeClassifier(AutoMLModel):
+    name = "Scikit-Learn RidgeClassifier"
+    model_type = AutoMLModel.CLASSIFIER
+
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn RidgeClassifier", AutoMLModel.CLASSIFIER)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         model = RidgeClassifier()
@@ -77,8 +91,11 @@ class ScikitLearnRidgeClassifier(AutoMLModel):
 
 
 class ScikitLearnDecisionTreeClassifier(AutoMLModel):
+    name = "Scikit-Learn DecisionTreeClassifier"
+    model_type = AutoMLModel.CLASSIFIER
+
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn DecisionTreeClassifier", AutoMLModel.CLASSIFIER)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         model = DecisionTreeClassifier(max_depth=5)
@@ -95,8 +112,11 @@ class ScikitLearnDecisionTreeClassifier(AutoMLModel):
 
 
 class ScikitLearnAdaBoostClassifier(AutoMLModel):
+    name = "Scikit-Learn AdaBoostClassifier"
+    model_type = AutoMLModel.CLASSIFIER
+
     def __init__(self) -> None:
-        super().__init__("Scikit-Learn AdaBoostClassifier", AutoMLModel.CLASSIFIER)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         model = AdaBoostClassifier()

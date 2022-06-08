@@ -8,8 +8,11 @@ from .base_model import AutoMLModel, TrainDataset
 
 
 class XGBoostClassifier(AutoMLModel):
+    name = "XGBoost Classifier"
+    model_type = AutoMLModel.CLASSIFIER
+
     def __init__(self) -> None:
-        super().__init__("XGBoost Classifier", AutoMLModel.CLASSIFIER)
+        super().__init__()
 
     def train(self, ds: TrainDataset) -> None:
         hyperparameter_grid = {

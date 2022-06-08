@@ -25,23 +25,41 @@ class AutoMLModel:
     CLASSIFIER = "classifier"
     REGRESSOR = "regressor"
 
-    def __init__(self, name: str, model_type: str) -> None:
-        self.model_type = model_type
-        self.name = name
+    def __init__(self) -> None:
         self.model = None
         self.score = 0
         self.feature_importances = None
         self.explainer = None
 
+    @property
     @abstractmethod
-    def train(self, dataset: TrainDataset) -> Any:
+    def name(self) -> str:
+        """
+        Name of the AutoML model that will be shown to the user.
+        :return: Name
         """
 
-        :return:
+    @property
+    @abstractmethod
+    def model_type(self) -> str:
+        """
+        Defines the model type
+        :return: Model type
+        """
+
+
+    @abstractmethod
+    def train(self, dataset: TrainDataset) -> None:
+        """
+        Trains an AutoML model with the dataset provided
+
+        :param dataset: Dataset to be used in training
+        :return: None
         """
 
     def compare_score(self, score: float) -> bool:
         """
-
-        :return:
+        Compares the model score to define the best model
+        :param score: Score of another model to be compared
+        :return: True/False is the score is better/worse
         """
