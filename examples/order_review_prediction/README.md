@@ -1,10 +1,10 @@
 # Predicting Order Review Scores in the dbt DAG
 
-In this e-commerce example walk through, we will train a machine learning model to predict order review scores in the middle of dbt DAG with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
+In this e-commerce example walk through, you will train a machine learning model to predict order review scores in the middle of dbt DAG with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
 
-We will use `layer.automl()` functionality to train an AutoML model based on the Brazilian e-commerce company, [OLIST’s datasets](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).  
+You will use `layer.automl()` functionality to train an AutoML model based on the Brazilian e-commerce company, [OLIST’s datasets](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).  
 
-This is all the SQL you need to train your ML model within the dbt DAG. You just pass Layer the model type, input features and the target column we want to predict:
+This is all the SQL you need to train your ML model within the dbt DAG. You just pass Layer the model type, input features and the target column you want to predict:
 
 ```sql
 SELECT order_id,
@@ -63,13 +63,13 @@ layer-profile:
 ```
 
 
-4. Now, we are ready to run our dbt DAG. To get the code, clone this repo, and go to the `order_review_prediction` example folder:
+4. Now, you are ready to run our dbt DAG. To get the code, clone this repo, and go to the `order_review_prediction` example folder:
 ```shell
 https://github.com/layerai/dbt-layer
 cd dbt-layer/examples/order_review_prediction
 ```
 
-5. The example is self-contained and includes [sample data](./seeds) that we need to insert in our DWH. Seed the datasets with: 
+5. The example is self-contained and includes [sample data](./seeds) that you need to insert in our DWH. Seed the datasets with: 
 
 ```shell
 dbt seed

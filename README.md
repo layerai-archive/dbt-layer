@@ -75,7 +75,7 @@ Check out the examples we have prepared for you:
 
 ### AutoML
 
-You can automatically build state-of-the-art ML models using your own dbt models with plain SQL. To train an AutoML model all you have to do is pass your model type, input data (features) and target column you want to predict to `layer.automl()` in your SQL.
+You can automatically build state-of-art ML models using your own dbt models with plain SQL. To train an AutoML model, all you have to do is pass your intended model type, the input data (features), and the target column you want to predict to the `layer.automl()` SQL function in a dbt model.
 
 _Syntax:_
 ```
@@ -115,7 +115,7 @@ FROM {{ ref('training_data') }}
 
 ### Prediction
 
-You can run predictions using any Layer ML model with your dbt models. Layer dbt Adapter helps you score your data within your dbt DAG with SQL.
+You can run predictions using any Layer ML model with your dbt models. The Layer dbt Adapter offers a SQL function that helps you score your data within your dbt DAG.
 
 _Syntax:_
 ```
