@@ -1,4 +1,4 @@
-# Predicting Order Review Scores in dbt DAG
+# Predicting Order Review Scores in the dbt DAG
 
 In this e-commerce example walk through, we will train a machine learning model to predict order review scores in the middle of dbt DAG with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
 
