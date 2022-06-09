@@ -103,7 +103,7 @@ FROM
 
 ### AutoML
 
-You can automatically build state-of-art ML models using your own dbt models with plain SQL. To train an AutoML model all you have to do is pass your model type, input data (features) and target column you want to predict to `layer.automl()` in your SQL.
+You can automatically build state-of-the-art ML models using your own dbt models with plain SQL. To train an AutoML model all you have to do is pass your model type, input data (features) and target column you want to predict to `layer.automl()` in your SQL.
 
 _Syntax:_
 ```
