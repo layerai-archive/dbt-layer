@@ -76,34 +76,33 @@ Check out the examples we have prepared for you:
 
 You can use any Layer ML model to make predictions with your dbt models.
 
-#### Syntax:
+_Syntax:_
 ```
 layer.predict("LAYER_MODEL_PATH", ARRAY[FEATURES])
 ```
 
-#### Parameters:
+_Parameters:_
 
-LAYER_MODEL_PATH: This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`.
-
-FEATURES: These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.
-
+| Syntax    | Description |
+| --------- | ----------- |
+| `LAYER_MODEL_PATH`      | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`.       |
+| `FEATURES` | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.        |
 
 
 ### AutoML
 
 You can use any Layer ML model to make predictions with your dbt models.
 
-#### Syntax:
+_Syntax:_
 ```
 layer.automl("MODEL_TYPE", ARRAY[FEATURES], TARGET)
 ```
 
-#### Parameters:
+_Parameters:_
 
-MODEL_TYPE: 
-
-FEATURES: 
-
-TARGET: 
-
+| Syntax    | Description                                                                                                                                                                                                                                 |
+| --------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MODEL_TYPE`    | Type of the model your want to train. There are two options: <br/> - `classifier`: A model to predict classes/labels or categories such as spam detection<br/>- `regressor`: A model to predict continious outcomes such as CLV prediction. |
+| `FEATURES`    | Input column names as a list to train your AutoML model.                                                                                                                                                                                    |
+| `TARGET`    | Target column that you want to predict.                                                                                                                                                                                                     |
 
