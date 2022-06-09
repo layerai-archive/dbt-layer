@@ -24,7 +24,7 @@ FROM {{ ref('training_data') }}
 Once you run this SQL:
 1. Layer will try different machine learning algorithms with many parameters to find the best one for your data
 2. Once the training done, Layer will register the model to your Layer account. [Click here](https://app.layer.ai/layer/order_review_prediction/models/review_score_predictor) for a sample AutoML model registered on Layer. 
-3. Then, you will be able to fetch the model and use it for predictions inside dbt DAG with `layer.predict()`. [Click here](./models/predictions.sql) to see a prediction example in this project.
+3. Then, you can fetch the model and use it for predictions from within dbt DAG with `layer.predict()`. [Click here](./models/predictions.sql) to see a prediction example in this project.
 
 The resulting dbt pipeline should look like this:
 
