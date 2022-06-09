@@ -90,7 +90,7 @@ _Parameters:_
 
 _Example:_
 
-Check out [Cloth Detection Project](https://github.com/layerai/dbt-layer/tree/mecevit/update-docs/examples/cloth_detector):
+Check out the [Cloth Detection Project](https://github.com/layerai/dbt-layer/tree/mecevit/update-docs/examples/cloth_detector):
 
 ```sql
 SELECT
