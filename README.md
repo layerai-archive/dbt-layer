@@ -74,7 +74,7 @@ Check out the examples we have prepared for you:
 
 ### Prediction
 
-You can use any Layer ML model to make predictions with your dbt models.
+You can run predictions using any Layer ML model with your dbt models. Layer dbt Adapter helps you score your data within your dbt DAG with SQL. 
 
 _Syntax:_
 ```
@@ -83,15 +83,27 @@ layer.predict("LAYER_MODEL_PATH", ARRAY[FEATURES])
 
 _Parameters:_
 
-| Syntax    | Description |
-| --------- | ----------- |
-| `LAYER_MODEL_PATH`      | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`.       |
-| `FEATURES` | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.        |
+| Syntax    | Description                                                                                                                                                                                        |
+| --------- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `LAYER_MODEL_PATH`      | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`. You can use only the model name if you want to use an AutoML model within the same dbt project. |
+| `FEATURES` | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.                                                |
+
+_Example:_
+
+Check out [Cloth Detection Project](https://github.com/layerai/dbt-layer/tree/mecevit/update-docs/examples/cloth_detector):
+
+```sql
+SELECT
+    id,
+    layer.predict("layer/clothing/models/objectdetection", ARRAY[image])
+FROM
+    {{ ref("products") }}
+```
 
 
 ### AutoML
 
-You can use any Layer ML model to make predictions with your dbt models.
+You can automatically build state-of-art ML models using your own dbt models with plain SQL. To train an AutoML model all you have to is pass your problem type, input data (features) and target column you want to predict to `layer.automl()` in your SQL.
 
 _Syntax:_
 ```
@@ -106,3 +118,33 @@ _Parameters:_
 | `FEATURES`    | Input column names as a list to train your AutoML model.                                                                                                                                                                                    |
 | `TARGET`    | Target column that you want to predict.                                                                                                                                                                                                     |
 
+
+_Requirements:_
+- You need to put `layer_api_key` to your dbt profile to make AutoML work.
+
+_Example:_
+
+Check out [Order Review AutoML Project](https://github.com/layerai/dbt-layer/tree/mecevit/update-docs/examples/order_review_prediction):
+
+```sql
+SELECT order_id,
+       layer.automl(
+           -- This is a regression problem
+           'regressor',
+           -- Data (input features) to train our model
+           ARRAY[
+           days_between_purchase_and_delivery, order_approved_late,
+           actual_delivery_vs_expectation_bucket, total_order_price, total_order_freight, is_multiItems_order,seller_shipped_late],
+           -- Target column we want to predict
+           review_score
+       )
+FROM {{ ref('training_data') }}
+```
+
+## FAQ
+
+1. Do I need a Layer account?
+- If you want to use public models from [Layer](https://layer.ai) you don't. But if you want to create your own models with AutoML, you can always [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
+2. How do I get my `layer-api-key`?
+- First, [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started). 
+- Go to [app.layer.ai](https://app.layer.ai) > **Settings** (Cog Icon by your profile photo) > **Developer** > **Create API key** to get your Layer API Key. 
