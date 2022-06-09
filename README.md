@@ -72,35 +72,6 @@ Check out the examples we have prepared for you:
 
 ## Quick Tour
 
-### Prediction
-
-You can run predictions using any Layer ML model with your dbt models. Layer dbt Adapter helps you score your data within your dbt DAG with SQL. 
-
-_Syntax:_
-```
-layer.predict("LAYER_MODEL_PATH", ARRAY[FEATURES])
-```
-
-_Parameters:_
-
-| Syntax    | Description                                                                                                                                                                                        |
-| --------- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `LAYER_MODEL_PATH`      | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`. You can use only the model name if you want to use an AutoML model within the same dbt project. |
-| `FEATURES` | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.                                                |
-
-_Example:_
-
-Check out [Cloth Detection Project](https://github.com/layerai/dbt-layer/tree/mecevit/update-docs/examples/cloth_detector):
-
-```sql
-SELECT
-    id,
-    layer.predict("layer/clothing/models/objectdetection", ARRAY[image])
-FROM
-    {{ ref("products") }}
-```
-
-
 ### AutoML
 
 You can automatically build state-of-art ML models using your own dbt models with plain SQL. To train an AutoML model all you have to do is pass your model type, input data (features) and target column you want to predict to `layer.automl()` in your SQL.
@@ -140,6 +111,37 @@ SELECT order_id,
        )
 FROM {{ ref('training_data') }}
 ```
+
+
+### Prediction
+
+You can run predictions using any Layer ML model with your dbt models. Layer dbt Adapter helps you score your data within your dbt DAG with SQL.
+
+_Syntax:_
+```
+layer.predict("LAYER_MODEL_PATH", ARRAY[FEATURES])
+```
+
+_Parameters:_
+
+| Syntax    | Description                                                                                                                                                                                        |
+| --------- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `LAYER_MODEL_PATH`      | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`. You can use only the model name if you want to use an AutoML model within the same dbt project. |
+| `FEATURES` | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.                                                |
+
+_Example:_
+
+Check out [Cloth Detection Project](https://github.com/layerai/dbt-layer/tree/mecevit/update-docs/examples/cloth_detector):
+
+```sql
+SELECT
+    id,
+    layer.predict("layer/clothing/models/objectdetection", ARRAY[image])
+FROM
+    {{ ref("products") }}
+```
+
+
 
 ## FAQ
 
