@@ -63,7 +63,7 @@ layer-profile:
 ```
 
 
-4. Now, we are ready to run our dbt DAG. To get the code, clone this repo, and go to the `titanic` example folder:
+4. Now, we are ready to run our dbt DAG. To get the code, clone this repo, and go to the `order_review_prediction` example folder:
 ```shell
 https://github.com/layerai/dbt-layer
 cd dbt-layer/examples/order_review_prediction
