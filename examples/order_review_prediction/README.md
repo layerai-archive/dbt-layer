@@ -1,10 +1,10 @@
-# Predicting Order Reviews in dbt DAG
+# Predicting Order Review Scores in the dbt DAG
 
-In this e-commerce example walk through, we will train a machine learning model to predict order reviews in the middle of dbt DAG with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
+In this e-commerce example walk through, you will train a machine learning model to predict order review scores in the middle of dbt DAG with the opensource [Layer dbt Adapter](https://github.com/layerai/dbt-adapters). The Layer dbt Adapter lets you easily enhance your dbt pipelines with machine learning (ML) workloads.
 
-We will use `layer.automl()` functionality to train an ML model based on the Brazilian e-commerce company, [OLIST’s datasets](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).  
+You will use `layer.automl()` functionality to train an AutoML model based on the Brazilian e-commerce company, [OLIST’s datasets](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).  
 
-This is all the SQL we need to train our ML model within the dbt DAG. You just pass Layer the model type, input features and the target column we want to predict:
+This is all the SQL you need to train your ML model within the dbt DAG. You just pass Layer the model type, input features and the target column you want to predict:
 
 ```sql
 SELECT order_id,
@@ -22,9 +22,9 @@ FROM {{ ref('training_data') }}
 ```
 
 Once you run this SQL:
-1. Layer will try many different machine learning models with many parameters to find the best one for your data
-2. Once the training done, Layer will register the model to your Layer account
-3. Then, you will be able to fetch the model and use it inside dbt DAG. [Click here](./models/predictions.sql) to see an example in this project.
+1. Layer tries different machine learning algorithms with many parameters to find the best one for your data
+2. Once the training done, Layer registers the model to your Layer account. [Click here](https://app.layer.ai/layer/order_review_prediction/models/review_score_predictor) for a sample AutoML model registered on Layer. 
+3. Then, you can fetch the model and use it for predictions from within dbt DAG with `layer.predict()`. [Click here](./models/predictions.sql) to see a prediction example in this project.
 
 The resulting dbt pipeline should look like this:
 
@@ -63,13 +63,13 @@ layer-profile:
 ```
 
 
-4. Now, we are ready to run our dbt DAG. To get the code, clone this repo, and go to the `titanic` example folder:
+4. Now, you are ready to run our dbt DAG. To get the code, clone this repo, and go to the `order_review_prediction` example folder:
 ```shell
 https://github.com/layerai/dbt-layer
 cd dbt-layer/examples/order_review_prediction
 ```
 
-5. The example is self-contained and includes [sample data](./seeds) that we need to insert in our DWH. Seed the datasets with: 
+5. The example is self-contained and includes [sample data](./seeds) that you need to insert in our DWH. Seed the datasets with: 
 
 ```shell
 dbt seed
