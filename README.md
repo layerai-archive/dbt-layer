@@ -92,7 +92,7 @@ _Parameters:_
 
 
 _Requirements:_
-- You need to put `layer_api_key` to your dbt profile to make AutoML work.
+- For AutoML to work, you need to add  the configuration `layer_api_key` with the API key of your Layer account into your dbt profile .
 
 _Example:_
 
