@@ -24,8 +24,8 @@ query">
 
 This adapter runs ML pipelines inside dbt dag with BigQuery as the backing data warehouse. With Layer dbt Adapter you can:
 
-- Score your data with a machine learning model from Layer
-- Train an AutoML model with your data _[coming soon...]_
+- Score your data with a machine learning model from Layer.
+- Train an AutoML model with your data.
 - Train a custom machine learning model with your data _[coming soon...]_
 
 To learn more about Layer:
@@ -50,7 +50,6 @@ layer-profile:
       dataset: [the name of your dbt dataset]
       threads: [1 or more]
       keyfile: [/path/to/bigquery/keyfile.json]
-      layer_project: [the Layer project to use for model training (opt)]
       layer_api_key: [the API Key to access your Layer account (opt)]
 ```
 
@@ -69,3 +68,42 @@ Check out the examples we have prepared for you:
 - [Predicting survials of Titanic](https://github.com/layerai/examples-dbt/tree/main/titanic) - Predicts the survivals of the Titanic disaster.
 - [Sentiment analysis of product reviews](https://github.com/layerai/examples-dbt/tree/main/sentiment_analysis) - An example that shows how to make multi-language sentiment analysis.
 - [Object detection in product images](https://github.com/layerai/examples-dbt/tree/main/cloth_detector) - Detects cloths from product images using a pretrained computer vision model.
+- [Review Scores Prediction with AutoML](https://github.com/layerai/dbt-layer/tree/main/examples/order_review_predictionr) - Train an AutoML model to predict the review scores.
+
+## Quick Tour
+
+### Prediction
+
+You can use any Layer ML model to make predictions with your dbt models.
+
+#### Syntax:
+```
+layer.predict("LAYER_MODEL_PATH", ARRAY[FEATURES])
+```
+
+#### Parameters:
+
+LAYER_MODEL_PATH: This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`.
+
+FEATURES: These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.
+
+
+
+### AutoML
+
+You can use any Layer ML model to make predictions with your dbt models.
+
+#### Syntax:
+```
+layer.automl("MODEL_TYPE", ARRAY[FEATURES], TARGET)
+```
+
+#### Parameters:
+
+MODEL_TYPE: 
+
+FEATURES: 
+
+TARGET: 
+
+
