@@ -68,7 +68,7 @@ Check out the examples we have prepared for you:
 - [Predicting survials of Titanic](https://github.com/layerai/examples-dbt/tree/main/titanic) - Predicts the survivals of the Titanic disaster.
 - [Sentiment analysis of product reviews](https://github.com/layerai/examples-dbt/tree/main/sentiment_analysis) - An example that shows how to make multi-language sentiment analysis.
 - [Object detection in product images](https://github.com/layerai/examples-dbt/tree/main/cloth_detector) - Detects clothes from product images using a pre-trained computer vision model.
-- [Review Scores Prediction with AutoML](https://github.com/layerai/dbt-layer/tree/main/examples/order_review_prediction) - Train an AutoML model to predict the review scores.
+- [Review Scores Prediction with AutoML](https://github.com/layerai/dbt-layer/tree/main/examples/order_review_predictionr) - Train an AutoML model to predict the review scores.
 
 ## Quick Tour
 
@@ -92,7 +92,7 @@ _Parameters:_
 
 
 _Requirements:_
-- For AutoML to work, you need to add  the configuration `layer_api_key` with the API key of your Layer account into your dbt profile .
+- For AutoML to work, you need to add the configuration `layer_api_key` with your [Layer API key](https://app.layer.ai/me/settings/developer) into your dbt profile.
 
 _Example:_
 
@@ -148,5 +148,5 @@ FROM
 1. Do I need a Layer account?
 - If you want to use public models from [Layer](https://layer.ai) you don't. But if you want to create your own models with AutoML, you can always [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
 2. How do I get my `layer-api-key`?
-- First, [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started). 
-- Go to [app.layer.ai](https://app.layer.ai) > **Settings** (Cog Icon by your profile photo) > **Developer** > **Create API key** to get your Layer API Key. 
+- First, [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
+- Get your Layer API key [here](https://app.layer.ai/me/settings/developer) 
