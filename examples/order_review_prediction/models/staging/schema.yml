@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_orders
+    columns:
+      - name: order_id
+        description: This is a unique identifier for an order
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_items
+    columns:
+      - name: order_id
+        description: This is a unique identifier for an order
+        tests:
+          - unique
+          - not_null
+      - name: shipping_limit_date
+        description: Latest date to ship the items
+      - name: price
+        description: Total price paid for the order
+      - name: freight_value
+        description: Price paid for the transportation
+
+  - name: stg_reviews
+    columns:
+      - name: order_id
+        description: This is a unique identifier for an order
+        tests:
+          - unique
+          - not_null
