@@ -34,7 +34,7 @@ The resulting dbt pipeline should look like this:
 ## How to run
 
 1. First, [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
-2. Go to [app.layer.ai](https://app.layer.ai) > **Settings** (Cog Icon by your profile photo) > **Developer** > **Create API key** to get your Layer API Key. 
+2. Go to [Layer Developer Settings](https://app.layer.ai/me/settings/developer) and click **Create API key** to get your Layer API Key. 
 
 3. Install the open-source [Layer dbt Adapter](https://github.com/layerai/dbt-adapters) corresponding to your Data Warehouse of choice. 
 At the moment, we only support Google BigQuery (more to come soon).
