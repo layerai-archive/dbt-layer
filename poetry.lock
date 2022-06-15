@@ -993,7 +993,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2487864659"
+version = "0.10.2497412792"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -1011,7 +1011,7 @@ humanize = ">=3.11.0"
 idna = "<3"
 Jinja2 = ">=2.11.3"
 jsonschema = "3.1.1"
-layer-api = "0.9.364115"
+layer-api = "0.9.364706"
 mlflow = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
@@ -1031,7 +1031,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.364115"
+version = "0.9.364706"
 description = ""
 category = "main"
 optional = false
@@ -2250,7 +2250,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "e8ffa34f2ed5b68b87de6043eb36aaee4f3b190f4762dbdad8c09a6ac85727a4"
+content-hash = "ffdb3e084ec31a3d3db584a147051cdd281cfd686cde3d79b932d6a7fee97faf"
 
 [metadata.files]
 agate = [
@@ -2956,11 +2956,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2487864659-py3-none-any.whl", hash = "sha256:fa6f09120834a261bc4ad72f67db81a695f67987262f62dbf73fc94242c0b11f"},
-    {file = "layer-0.10.2487864659.tar.gz", hash = "sha256:bcb21b570813f7c2980fc682d6c3e4530f241cb619a347c2f8be8b10b901b712"},
+    {file = "layer-0.10.2497412792-py3-none-any.whl", hash = "sha256:6ada549c3fd834a118000c0acfc3c4d7d330200a6883a27be44092c041a45267"},
+    {file = "layer-0.10.2497412792.tar.gz", hash = "sha256:71fd56325a61af2c1130efbafe75a77a2e161b5b81df31c251bef35a71cf7633"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.364115-py3-none-any.whl", hash = "sha256:56ded4bd21add864e0df4495b6172192d4ba8b9717153b184ce6f4ef0d57e6b4"},
+    {file = "layer_api-0.9.364706-py3-none-any.whl", hash = "sha256:e07359266327a174d2679a3bc25b6429da1c46dd2802a4186f8b6317e8045daf"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
