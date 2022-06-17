@@ -993,7 +993,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2510447650"
+version = "0.10.2515011057"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -1011,7 +1011,7 @@ humanize = ">=3.11.0"
 idna = "<3"
 Jinja2 = ">=2.11.3"
 jsonschema = "3.1.1"
-layer-api = "0.9.365026"
+layer-api = "0.9.365409"
 mlflow = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
@@ -1019,7 +1019,6 @@ packaging = "<=21.0"
 pandas = "1.3.5"
 pickle5 = {version = ">=0.0.11,<0.1.0", markers = "python_version < \"3.8\""}
 polling = ">=0.3.1"
-prompt_toolkit = ">=3.0.8"
 protobuf = ">=3.12.0"
 pyarrow = "7.0.0"
 pyjwt = ">=2.0.0,<3.0.0"
@@ -1031,7 +1030,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.365026"
+version = "0.9.365409"
 description = ""
 category = "main"
 optional = false
@@ -1464,7 +1463,7 @@ prometheus-client = "*"
 name = "prompt-toolkit"
 version = "3.0.29"
 description = "Library for building powerful interactive command lines in Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.2"
 
@@ -2167,7 +2166,7 @@ testing = ["pytest", "pytest-cover", "coverage (>=5.0)"]
 name = "wcwidth"
 version = "0.2.5"
 description = "Measures the displayed width of unicode strings in a terminal"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -2250,7 +2249,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "d449278bac48f4a6082cbbba14fc90b4bfc30d565cf983ca3f9504f839728b61"
+content-hash = "c98a950c6e94724a1cf03e0000be536083de8122274030eab042f255ed8a33b8"
 
 [metadata.files]
 agate = [
@@ -2956,11 +2955,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2510447650-py3-none-any.whl", hash = "sha256:330aac454accf1914877daba8afe90d76a14d17abc72c3b11a25a5e7531f7c7a"},
-    {file = "layer-0.10.2510447650.tar.gz", hash = "sha256:07ba6fb9f97b465f849645f5eff0813487a9022c6d62099e63622472d1dea9ea"},
+    {file = "layer-0.10.2515011057-py3-none-any.whl", hash = "sha256:754ac12d3226e679cdf4c79c69016cd0362811bc11269567810b15edaca3f553"},
+    {file = "layer-0.10.2515011057.tar.gz", hash = "sha256:521ceed669f0b80fc00c04b42c06445c3a695e47650b7329ed04426ddb258d60"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.365026-py3-none-any.whl", hash = "sha256:2aa1e12aa3bbc2043198c49b10b2c978a1ba2c55420ca3f520c44d6855792be7"},
+    {file = "layer_api-0.9.365409-py3-none-any.whl", hash = "sha256:1e6d4907c80714d205af3a1ddfc2e92803ecc1facfd7378b1605b57adfc5c753"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
