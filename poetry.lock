@@ -993,7 +993,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2517581172"
+version = "0.10.2529591299"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -1011,7 +1011,8 @@ humanize = ">=3.11.0"
 idna = "<3"
 Jinja2 = ">=2.11.3"
 jsonschema = "3.1.1"
-layer-api = "0.9.365520"
+layer-api = "0.9.365841"
+luddite = "1.0.2"
 mlflow = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
@@ -1030,7 +1031,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.365520"
+version = "0.9.365841"
 description = ""
 category = "main"
 optional = false
@@ -1038,7 +1039,7 @@ python-versions = "*"
 
 [package.dependencies]
 grpcio-tools = "1.45.0"
-protobuf = ">=3.20.0"
+protobuf = ">=3.19.4"
 
 [[package]]
 name = "lazy-object-proxy"
@@ -1077,6 +1078,20 @@ redis = ["redis"]
 sqlalchemy = ["sqlalchemy"]
 test = ["pytest-cov (>=2.6)", "pytest (>4.0)"]
 zmq = ["pyzmq"]
+
+[[package]]
+name = "luddite"
+version = "1.0.2"
+description = "Checks for out-of-date package versions"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["pytest (>=3.6.3)", "pytest-cov", "pytest-mock", "pytest-socket", "coveralls"]
 
 [[package]]
 name = "mako"
@@ -2249,7 +2264,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "731c9e8d8bd7204cbb56918f2eb639f30c3ffc091dbb0b5a28ddfe61d4c2877e"
+content-hash = "2beeb2b1ab1a03b3c8b0d2a784f85b226090d6e564cca9988f11c56ded49b09e"
 
 [metadata.files]
 agate = [
@@ -2955,11 +2970,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2517581172-py3-none-any.whl", hash = "sha256:8f57964bd838afb8ac4b13dce013dcb4eda7fc6582656961900130096e5ee468"},
-    {file = "layer-0.10.2517581172.tar.gz", hash = "sha256:b498619ecabccc31f4604565e4bbb590e0c5f117398bac1c38cfcc4687e2153c"},
+    {file = "layer-0.10.2529591299-py3-none-any.whl", hash = "sha256:536668fe1120005e5fbea6d48d5c6acea9fee607396bb28327cdd4a8c414d835"},
+    {file = "layer-0.10.2529591299.tar.gz", hash = "sha256:7b33491e1d5b6d92f6b0eeafd9612bc02ec8c1811518cef492635eccc1acc8de"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.365520-py3-none-any.whl", hash = "sha256:ac9546dd37e0f31b382fda58a71ab3b185f86aa835b3336512743ca6167a1bd0"},
+    {file = "layer_api-0.9.365841-py3-none-any.whl", hash = "sha256:6a03878baf3b85db5c1a96a956c613d4a78f7ef039a63f78706303f5d4956554"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
@@ -3014,6 +3029,10 @@ logbook = [
     {file = "Logbook-1.5.3-cp37-cp37m-win32.whl", hash = "sha256:8f76a2e7b1f72595f753228732f81ce342caf03babc3fed6bbdcf366f2f20f18"},
     {file = "Logbook-1.5.3-cp37-cp37m-win_amd64.whl", hash = "sha256:0cf2cdbfb65a03b5987d19109dacad13417809dcf697f66e1a7084fb21744ea9"},
     {file = "Logbook-1.5.3.tar.gz", hash = "sha256:66f454ada0f56eae43066f604a222b09893f98c1adc18df169710761b8f32fe8"},
+]
+luddite = [
+    {file = "luddite-1.0.2-py2.py3-none-any.whl", hash = "sha256:5d4cd45c91e7876465330b84e18e6994d44b77ee8f723fdc384d5fd7ff160c04"},
+    {file = "luddite-1.0.2.tar.gz", hash = "sha256:8bec9f75247716320da307ff84df141b57fbd1f7e81a8bc2a7d7db88531cebc5"},
 ]
 mako = [
     {file = "Mako-1.2.0-py3-none-any.whl", hash = "sha256:23aab11fdbbb0f1051b93793a58323ff937e98e34aece1c4219675122e57e4ba"},
