@@ -993,7 +993,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2557841006"
+version = "0.10.2560904018"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -1005,18 +1005,13 @@ boto3 = ">=1.16.24"
 cloudpickle = ">=2.0.0"
 cryptography = ">=3.4.7"
 docker = ">=4,<5"
-grpcio = "1.45.0"
-grpcio-tools = "1.45.0"
 humanize = ">=3.11.0"
 idna = "<3"
 Jinja2 = ">=2.11.3"
-jsonschema = "3.1.1"
-layer-api = "0.9.367551"
-luddite = "1.0.2"
+layer-api = "0.9.367619"
 mlflow = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
-packaging = "<=21.0"
 pandas = "1.3.5"
 pickle5 = {version = ">=0.0.11,<0.1.0", markers = "python_version < \"3.8\""}
 polling = ">=0.3.1"
@@ -1031,14 +1026,14 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.367551"
+version = "0.9.367619"
 description = ""
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-grpcio-tools = "1.45.0"
+grpcio-tools = ">=1.45.0"
 protobuf = ">=3.19.4"
 
 [[package]]
@@ -1078,20 +1073,6 @@ redis = ["redis"]
 sqlalchemy = ["sqlalchemy"]
 test = ["pytest-cov (>=2.6)", "pytest (>4.0)"]
 zmq = ["pyzmq"]
-
-[[package]]
-name = "luddite"
-version = "1.0.2"
-description = "Checks for out-of-date package versions"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[package.extras]
-dev = ["pytest (>=3.6.3)", "pytest-cov", "pytest-mock", "pytest-socket", "coveralls"]
 
 [[package]]
 name = "mako"
@@ -2264,7 +2245,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "84eb29e90b7cd4045f31c93bfd8f981e7f436facb30bb3821a937b98214310f7"
+content-hash = "ce6e25c148c897db926abe6bc8eb65f20481f36594d4979a3e8b9b98357e1e5d"
 
 [metadata.files]
 agate = [
@@ -2970,11 +2951,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2557841006-py3-none-any.whl", hash = "sha256:99cd95a57aaa66d6657200417707e2aafb0924fbdeae6df228044834c29f2101"},
-    {file = "layer-0.10.2557841006.tar.gz", hash = "sha256:3c3118f826f863bc37272e8b730c28c821aefc6fc3c5e0eef79b7f99fc5acbe1"},
+    {file = "layer-0.10.2560904018-py3-none-any.whl", hash = "sha256:badcbdbe83bfa7e47c0cbd2efe92f5a1f43e14545648bcb188d2f500ca095d7e"},
+    {file = "layer-0.10.2560904018.tar.gz", hash = "sha256:d9a4c5793ea864595e7f46c31e88ac7007d4ab654dcd6612bd7b3fc98a373636"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.367551-py3-none-any.whl", hash = "sha256:4864d330c73151b12838530552ae75d69d72e4a6eecdffa4e2c91f4c99002f82"},
+    {file = "layer_api-0.9.367619-py3-none-any.whl", hash = "sha256:bcdd65b297407c4ad798285e510d28da6a4c4f2ba1497702f51fc47604e8ae3d"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
@@ -3029,10 +3010,6 @@ logbook = [
     {file = "Logbook-1.5.3-cp37-cp37m-win32.whl", hash = "sha256:8f76a2e7b1f72595f753228732f81ce342caf03babc3fed6bbdcf366f2f20f18"},
     {file = "Logbook-1.5.3-cp37-cp37m-win_amd64.whl", hash = "sha256:0cf2cdbfb65a03b5987d19109dacad13417809dcf697f66e1a7084fb21744ea9"},
     {file = "Logbook-1.5.3.tar.gz", hash = "sha256:66f454ada0f56eae43066f604a222b09893f98c1adc18df169710761b8f32fe8"},
-]
-luddite = [
-    {file = "luddite-1.0.2-py2.py3-none-any.whl", hash = "sha256:5d4cd45c91e7876465330b84e18e6994d44b77ee8f723fdc384d5fd7ff160c04"},
-    {file = "luddite-1.0.2.tar.gz", hash = "sha256:8bec9f75247716320da307ff84df141b57fbd1f7e81a8bc2a7d7db88531cebc5"},
 ]
 mako = [
     {file = "Mako-1.2.0-py3-none-any.whl", hash = "sha256:23aab11fdbbb0f1051b93793a58323ff937e98e34aece1c4219675122e57e4ba"},
