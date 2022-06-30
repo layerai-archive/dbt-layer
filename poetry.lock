@@ -891,7 +891,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2584428267"
+version = "0.10.2591415413"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -905,7 +905,7 @@ cryptography = ">=3.4.7"
 humanize = ">=3.11.0"
 idna = "<3"
 Jinja2 = ">=2.11.3"
-layer-api = "0.9.368123"
+layer-api = "0.9.368635"
 mlflow-skinny = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
@@ -917,6 +917,7 @@ protobuf = ">=3.12.0"
 psutil = ">=5.9.1,<6.0.0"
 pyarrow = "7.0.0"
 pyjwt = ">=2.0.0,<3.0.0"
+requests = ">=2.23.0"
 rich = ">=11"
 scipy = "*"
 transformers = "*"
@@ -926,7 +927,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.368123"
+version = "0.9.368635"
 description = ""
 category = "main"
 optional = false
@@ -2035,7 +2036,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "eb0557a20d3dc73e8da1add38d3810eca7e7b4896551d96751fc7fc93174200b"
+content-hash = "f64322cfeca72633cc060695b5700a91343760a5be9eb1d88dd61b62f9707559"
 
 [metadata.files]
 agate = [
@@ -2660,11 +2661,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2584428267-py3-none-any.whl", hash = "sha256:030bf5aae15f1234bae4036c4a1783a73e3254eda39358dbd3e5dc615cc4825d"},
-    {file = "layer-0.10.2584428267.tar.gz", hash = "sha256:f349a29f66ae943b7476adf874296ce4f0f566a5342e07b92694c35d644c8736"},
+    {file = "layer-0.10.2591415413-py3-none-any.whl", hash = "sha256:5ab5a87a599a80cde77d0867b06b750042122b438ceede32cad668926b46b662"},
+    {file = "layer-0.10.2591415413.tar.gz", hash = "sha256:84c956e510575c2843d73028812297997bbbc010b20d30233bacd52dfbc8880c"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.368123-py3-none-any.whl", hash = "sha256:c981f5252f6966cd3a606650c6d40144c860ffddefd6065455a9a6e75f26fccd"},
+    {file = "layer_api-0.9.368635-py3-none-any.whl", hash = "sha256:4c69675881b571f4ca0c286e7b7e571d05fa334061bc6d31f5655bda3bd39839"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
