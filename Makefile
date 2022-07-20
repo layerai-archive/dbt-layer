@@ -1,10 +1,11 @@
 INSTALL_STAMP := .install.stamp
 POETRY := $(shell command -v poetry 2> /dev/null)
 IN_VENV := $(shell echo $(CONDA_DEFAULT_ENV)$(CONDA_PREFIX)$(VIRTUAL_ENV))
+REQUIRED_POETRY_VERSION := 1.1.14
 
 .DEFAULT_GOAL:=help
 
-install: $(INSTALL_STAMP) ## Install dependencies
+install: check-poetry $(INSTALL_STAMP) ## Install dependencies
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
 ifdef IN_VENV
@@ -36,6 +37,13 @@ lint: $(INSTALL_STAMP) ## Run all linters
 	$(POETRY) run pylint  --recursive yes .
 	$(POETRY) run mypy .
 	$(POETRY) run bandit -x "./test/*" -r .
+
+.PHONY: check-poetry
+check-poetry:
+	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. Please install $(REQUIRED_POETRY_VERSION). See https://python-poetry.org/docs/"; exit 2; fi
+ifneq ($(shell $(POETRY) --version | awk '{print $$3}'), $(REQUIRED_POETRY_VERSION))
+	@echo "Please use Poetry version $(REQUIRED_POETRY_VERSION)" && exit 2
+endif
 
 .PHONY: check
 check: test lint ## Run test and lint
