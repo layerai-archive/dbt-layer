@@ -5,6 +5,10 @@ on:
 
 jobs:
   check-package-loads:
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter: ["bigquery", "snowflake"]
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -19,10 +23,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/.cache/pypoetry/virtualenvs
-          key: poetry-venvs-no-dev-${{ runner.os }}-3.8-${{ hashFiles('poetry.lock') }}
-          restore-keys: poetry-vevns-no-dev-${{ runner.os }}-3.8-
+          key: poetry-venvs-no-dev-${{ runner.os }}-3.8-${{ matrix.adapter }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: poetry-vevns-no-dev-${{ runner.os }}-3.8-${{ matrix.adapter }}-
       - name: Check package loads without dev dependencies
-        run: make check-package-loads
+        run: make check-package-loads adapter=${{ matrix.adapter }}
   check-lockfile:
     runs-on: ubuntu-18.04
     steps:
@@ -80,6 +84,10 @@ jobs:
       - name: Run check
         run: make check
   e2e-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter: ["bigquery", "snowflake"]
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -95,8 +103,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /home/runner/.cache/pypoetry/virtualenvs
-          key: poetry-venvs-${{ runner.os }}-3.8-${{ hashFiles('poetry.lock') }}
-          restore-keys: poetry-venvs-${{ runner.os }}-3.8-
+          key: poetry-venvs-${{ runner.os }}-3.8-${{ matrix.adapter }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: poetry-venvs-${{ runner.os }}-3.8-${{ matrix.adapter }}-
       - name: Fail fast if on a fork as forks cannot run e2e-tests directly
         if: |
           github.event.pull_request.head.repo.full_name != github.repository &&
@@ -105,6 +113,7 @@ jobs:
           exit 1
       - name: Run e2e tests
         run: |
-          make e2e-test
+          make e2e-test EXTRAS=${{ matrix.adapter }} adapter=${{ matrix.adapter }}
         env:
-          BIG_QUERY_CREDENTIALS: ${{secrets.BIG_QUERY_CREDENTIALS}}
+          BIGQUERY_CREDENTIALS: ${{secrets.BIGQUERY_CREDENTIALS}}
+          SNOWFLAKE_CREDENTIALS: ${{secrets.SNOWFLAKE_CREDENTIALS}}
