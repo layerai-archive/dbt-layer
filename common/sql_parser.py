@@ -37,6 +37,7 @@ class LayerPredictFunction(LayerSqlFunction):
         model_name: str,
         select_columns: List[str],
         predict_columns: List[str],
+        all_columns: List[str],
         prediction_alias: str,
         sql: str,
     ) -> None:
@@ -46,6 +47,7 @@ class LayerPredictFunction(LayerSqlFunction):
         self.model_name = model_name
         self.select_columns = select_columns
         self.predict_columns = predict_columns
+        self.all_columns = all_columns
         self.prediction_alias = prediction_alias
         self.sql = sql
 
@@ -124,7 +126,9 @@ class LayerSQLParser:
         if not layer_func:
             return None
 
-        target_name_group = next((x for x in expect_tokens(tokens, [keyword("create or replace"), group()])), None)
+        target_name_group = next(
+            (x for x in expect_tokens(tokens, [keyword("create or replace"), keyword("table"), group()])), None
+        )
         if not target_name_group:
             return None
         target_name = self._get_target_name_from_group(target_name_group)
@@ -144,7 +148,7 @@ class LayerSQLParser:
         if target_name_tokens:
             return "".join([x.value for x in target_name_tokens])
         else:
-            raise ValueError("Invalid sql syntax")
+            raise ValueError("Invalid sql syntax for Layer function")
 
     def parse_predict(self, layer_func_token: Token, target: str) -> LayerPredictFunction:
 
@@ -184,9 +188,9 @@ class LayerSQLParser:
             raise ValueError(f"Invalid predict function syntax {invalid_func}")
         model_name, _, bracket_container = clean_func_tokens
         predict_model = remove_quotes(model_name.value)
-        predict_cols = get_cols_from_container(bracket_container)
+        predict_columns = get_cols_from_container(bracket_container)
 
-        all_columns = select_columns + list(set(predict_cols) - set(select_columns))
+        all_columns = select_columns + list(set(predict_columns) - set(select_columns))
         sql_text = build_sql(all_columns, source, where_statement)
         sql = sqlparse.format(sql_text, keyword_case="lower", strip_whitespace=True)
 
@@ -197,7 +201,8 @@ class LayerSQLParser:
             target,
             predict_model,
             select_columns,
-            predict_cols,
+            predict_columns,
+            all_columns,
             prediction_alias,
             sql,
         )
