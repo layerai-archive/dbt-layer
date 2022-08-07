@@ -11,8 +11,7 @@ alt="Layer"/>
     <a href="https://github.com/layerai/dbt-adapters/blob/main/LICENSE">
         <img alt="License" src="https://img.shields.io/github/license/layerai/dbt-adapters.svg?color=blue">
     </a>
-    <a href="https://pypi.python.org/pypi/dbt-layer-big
-query">
+    <a href="https://pypi.python.org/pypi/dbt-layer">
         <img alt="PyPI" src="https://img.shields.io/pypi/v/layer.svg">
     </a>
     <a href="https://github.com/layerai/.github/blob/main/CODE_OF_CONDUCT.md">
@@ -20,9 +19,9 @@ query">
     </a>
 </p>
 
-# Layer dbt Adapter for BigQuery (Beta)
+# Layer dbt Adapter
 
-This adapter runs ML pipelines inside dbt dag with BigQuery as the backing data warehouse. With Layer dbt Adapter you can:
+This adapter runs ML pipelines inside dbt dag with BigQuery or Snowflake as the backing data warehouse. With the Layer dbt Adapter you can:
 
 - Score your data with a machine learning model from Layer.
 - Train an AutoML model with your data.
@@ -33,12 +32,15 @@ To learn more about Layer:
 https://layer.ai
 
 ## Getting started
-To immediately start  using Layer inside your dbt DAG, install the Layer dbt Adapter for BigQuery:
+
+To immediately start using Layer inside your dbt DAG, install the Layer dbt Adapter for BigQuery:
+
 ```shell
-pip install dbt-layer-bigquery -U
+pip install dbt-layer[bigquery] -U
 ```
 
 Add the Layer dbt Adapter to your BigQuery profile. An example profile:
+
 ```yaml
 layer-profile:
   target: dev
@@ -63,6 +65,7 @@ from {{ref('reviews')}}
 ```
 
 ## Examples
+
 Check out the examples we have prepared for you:
 
 - [Predicting survials of Titanic](https://github.com/layerai/examples-dbt/tree/main/titanic) - Predicts the survivals of the Titanic disaster.
@@ -72,26 +75,26 @@ Check out the examples we have prepared for you:
 
 ## Quick Tour
 
-
 ### AutoML
 
 You can automatically build state-of-art ML models using your own dbt models with plain SQL. To train an AutoML model, all you have to do is pass your intended model type, the input data (features), and the target column you want to predict to the `layer.automl()` SQL function in a dbt model.
 
 _Syntax:_
+
 ```
 layer.automl("MODEL_TYPE", ARRAY[FEATURES], TARGET)
 ```
 
 _Parameters:_
 
-| Syntax    | Description                                                                                                                                                                                                                                 |
-| --------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `MODEL_TYPE`    | Type of the model your want to train. There are two options: <br/> <ul><li>`classifier`: A model to predict classes/labels or categories such as `spam, no-spam (ham)` in the classic spam detection model</li><li> `regressor`: A model to predict continuous outcomes such as a share price prediction.</li></ul> |
-| `FEATURES`    | Input column names as a list to train your AutoML model.                                                                                                                                                                                    |
-| `TARGET`    | Target column that you want to predict.                                                                                                                                                                                                     |
-
+| Syntax       | Description                                                                                                                                                                                                                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MODEL_TYPE` | Type of the model your want to train. There are two options: <br/> <ul><li>`classifier`: A model to predict classes/labels or categories such as `spam, no-spam (ham)` in the classic spam detection model</li><li> `regressor`: A model to predict continuous outcomes such as a share price prediction.</li></ul> |
+| `FEATURES`   | Input column names as a list to train your AutoML model.                                                                                                                                                                                                                                                            |
+| `TARGET`     | Target column that you want to predict.                                                                                                                                                                                                                                                                             |
 
 _Requirements:_
+
 - For AutoML to work, you need to add the configuration `layer_api_key` with your [Layer API key](https://app.layer.ai/me/settings/developer) into your dbt profile.
 
 _Example:_
@@ -118,16 +121,17 @@ FROM {{ ref('training_data') }}
 You can run predictions using any Layer ML model with your dbt models. The Layer dbt Adapter offers a SQL function that helps you score your data within your dbt DAG.
 
 _Syntax:_
+
 ```
 layer.predict("LAYER_MODEL_PATH", ARRAY[FEATURES])
 ```
 
 _Parameters:_
 
-| Syntax    | Description                                                                                                                                                                                        |
-| --------- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `LAYER_MODEL_PATH`      | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`. You can use only the model name if you want to use an AutoML model within the same dbt project. |
-| `FEATURES` | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.                                                |
+| Syntax             | Description                                                                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LAYER_MODEL_PATH` | This is the Layer model path in form of `/[organization_name]/[project_name]/models/[model_name]`. You can use only the model name if you want to use an AutoML model within the same dbt project. |
+| `FEATURES`         | These are the columns that this model requires to make a prediction. You should pass the columns as a list like `ARRAY[column1, column2, column3]`.                                                |
 
 _Example:_
 
@@ -141,12 +145,13 @@ FROM
     {{ ref("products") }}
 ```
 
-
-
 ## FAQ
 
 1. Do I need a Layer account?
+
 - If you want to use public models from [Layer](https://layer.ai) you don't. But if you want to create your own models with AutoML, you can always [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
+
 2. How do I get my `layer-api-key`?
+
 - First, [create your free Layer account](https://app.layer.ai/login?returnTo=%2Fgetting-started).
-- Get your Layer API key [here](https://app.layer.ai/me/settings/developer) 
+- Get your Layer API key [here](https://app.layer.ai/me/settings/developer)
