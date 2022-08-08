@@ -1,8 +1,5 @@
-INSTALL_STAMP := .install.stamp
-POETRY := $(shell command -v poetry 2> /dev/null)
-EXTRAS ?= "bigquery snowflake"
-IN_VENV := $(shell echo $(CONDA_DEFAULT_ENV)$(CONDA_PREFIX)$(VIRTUAL_ENV))
-REQUIRED_POETRY_VERSION := 1.1.14
+include include.mk
+include environment.mk
 
 .DEFAULT_GOAL:=help
 
@@ -94,5 +91,5 @@ help: ## Show this help message.
 	@echo 'usage: make [target]'
 	@echo
 	@echo 'targets:'
-	@grep -E '^[8+0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep --no-filename -E '^[8+0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo

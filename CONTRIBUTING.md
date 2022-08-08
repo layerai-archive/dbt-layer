@@ -98,21 +98,38 @@ If you'd like to go beyond reporting bugs and feature requests, you can follow t
 - `poetry`
 - `make`
 
-## Setup
-Run `pyenv install` in the root of this repo to ensure you have the preferred Python version setup
+### Python setup
+We recommend using `pyenv`
 
+Please run `make create-environment` to setup the recommended python version.
+
+If you are using an Apple M1 machine, we recommend using `conda` via [Miniforge3](https://github.com/conda-forge/miniforge/). After installing conda please run
+
+```
+# Create and activate conda environment
+make create-environment
+conda activate build/dbt-layer
+```
+
+After that you should be able to run the rest of the `make` targets as normal
 ## Makefile
 We use `make` as our build system.
 
 Targets:
-- `install` - prepares the `poetry` virtual environment. Most of the other tasks will do that automatically for you
-- `format` - formats the code
-- `test` - runs unit tests
-- `lint` - runs linters
-- `check` - runs `test` and `lint`
-- `publish` - publishes the project to PyPi. This is intended to be used in CI only.
-- `clean` - cleans the repo, including the `poetry` virtual environment
-- `help` - prints all targets
+```
+install                        Install dependencies
+test                           Run unit tests
+e2e-test                       Run e2e tests
+format                         Apply formatters
+lint                           Run all linters
+check                          Run test and lint
+check-package-loads            Check that we can load the package without the dev dependencies
+publish                        Publish to PyPi - should only run in CI
+clean                          Resets development environment.
+help                           Show this help message.
+create-environment             Set up virtual environment
+delete-environment             Delete the virtual environment
+```
 
 ## Dependency management
 The `poetry` documentation about dependency management is [here](https://python-poetry.org/docs/dependency-specification/)

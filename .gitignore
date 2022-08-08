@@ -97,3 +97,4 @@ venv/
 
 # make outputs
 .install.stamp
+.environment.M1.yml
