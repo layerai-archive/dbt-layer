@@ -24,17 +24,6 @@ SNOWFLAKE_PROJECT_NAME = "layer-snowflake"
 SNOWFLAKE_CREDENTIALS = os.getenv("SNOWFLAKE_CREDENTIALS") or "{}"
 
 
-def pytest_addoption(parser: pytest.Parser) -> None:
-    parser.addoption("--adapter", action="store", default="bigquery")
-
-
-@pytest.fixture(scope="session")
-def adapter_type(pytestconfig: pytest.Config) -> str:
-    adapter_type = pytestconfig.getoption("adapter")
-    logger.info("running e2e tests for adapter type %s", adapter_type)
-    return adapter_type
-
-
 @pytest.fixture()
 def test_project_name(request: pytest.FixtureRequest, adapter_type: str) -> str:
     test_name_parametrized: str
@@ -73,7 +62,7 @@ def dbt_profiles_yaml(adapter_type: str, test_project_name: str) -> Iterable[Pat
     elif adapter_type == "snowflake":
         yield from dbt_profiles_yaml_snowflake(test_project_name)
     else:
-        raise Exception(f"Invalid adapter type: {adapter_type:r}")
+        raise Exception(f"Invalid adapter type: {adapter_type!r}")
 
 
 def dbt_profiles_yaml_bigquery(test_project_name: str) -> Iterable[Path]:
