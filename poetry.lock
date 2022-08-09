@@ -945,7 +945,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2817309999"
+version = "0.10.2826896527"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -957,14 +957,14 @@ boto3 = ">=1.16.24"
 cryptography = ">=3.4.7"
 humanize = ">=3.11.0"
 Jinja2 = "*"
-layer-api = "0.9.376416"
+layer-api = "0.9.376781"
 mlflow-skinny = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
 nvsmi = ">=0.4.2,<0.5.0"
 pandas = "1.3.5"
 polling = ">=0.3.1"
-psutil = ">=5.9.1,<6.0.0"
+psutil = ">=5.4.8"
 pyarrow = "7.0.0"
 pyjwt = ">=2.0.0,<3.0.0"
 requests = ">=2.23.0"
@@ -976,7 +976,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.376416"
+version = "0.9.376781"
 description = ""
 category = "main"
 optional = false
@@ -984,7 +984,7 @@ python-versions = "*"
 
 [package.dependencies]
 grpcio-tools = ">=1.45.0"
-protobuf = ">=3.19.4"
+protobuf = ">=3.17.3"
 
 [[package]]
 name = "lazy-object-proxy"
@@ -1503,10 +1503,10 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
-docs = ["zope.interface", "sphinx-rtd-theme", "sphinx"]
-dev = ["pre-commit", "mypy", "coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)", "cryptography (>=3.3.1)", "zope.interface", "sphinx-rtd-theme", "sphinx"]
 crypto = ["cryptography (>=3.3.1)"]
+dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
+docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
+tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pylint"
@@ -2157,7 +2157,7 @@ snowflake = ["dbt-snowflake"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "daee899f036e9e0d4ad6ad2ba8e0775cab845d3ce9a7eea3483816fdea844a7d"
+content-hash = "a8b1f5cdc4a27b907f9b736421aab948c09aeb1351ceb30175d290f855d305b6"
 
 [metadata.files]
 agate = [
@@ -2796,11 +2796,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2817309999-py3-none-any.whl", hash = "sha256:994d86a3fcbb78b23341ce894a62322394ac51a8947a7bd5dc6bdbd4379f77d8"},
-    {file = "layer-0.10.2817309999.tar.gz", hash = "sha256:8188bb97f1366ca49ad496639394144170826a710d065b098a8513b344bb86af"},
+    {file = "layer-0.10.2826896527-py3-none-any.whl", hash = "sha256:e22bd014461a953b7371109efb841b8eeb710a895268e1a6892100788cbd6a88"},
+    {file = "layer-0.10.2826896527.tar.gz", hash = "sha256:d853525d0728d4c7d15ddf4cac008c7bb7c947b783c48a112f642c560a25abee"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.376416-py3-none-any.whl", hash = "sha256:185008237ff8b9f598b8bedd37589ffcd0aed6b7da1e40beb3c613ebf7664454"},
+    {file = "layer_api-0.9.376781-py3-none-any.whl", hash = "sha256:5336420c7677ec50d485da46fc48f7b5b460188fbe05d13e1e05d1cdc93d9432"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
