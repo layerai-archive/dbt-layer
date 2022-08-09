@@ -1,20 +1,15 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
 
 from dbt.adapters.bigquery.connections import (  # type:ignore
     BigQueryConnectionManager,
     BigQueryCredentials,
 )
 
+from common.credentials import LayerCredentials
+
 
 @dataclass
-class LayerBigQueryCredentials(BigQueryCredentials):
-    # Layer config json creds
-    layer_configfile: Optional[str] = None
-    layer_configfile_json: Optional[Dict[str, Any]] = None
-    layer_project: Optional[str] = None
-    layer_api_key: Optional[str] = None
-
+class LayerBigQueryCredentials(LayerCredentials, BigQueryCredentials):
     @property
     def type(self) -> str:
         return "layer_bigquery"

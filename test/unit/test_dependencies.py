@@ -4,10 +4,10 @@ import re
 import toml
 
 
-def test_dbt_core_version() -> None:
+def test_dbt_core_version(adapter_type: str) -> None:
     repo_root = pathlib.Path(__file__).parent.parent.parent
 
-    dbt_version_file = repo_root / "dbt" / "adapters" / "layer_bigquery" / "__version__.py"
+    dbt_version_file = repo_root / "dbt" / "adapters" / f"layer_{adapter_type}" / "__version__.py"
     with open(dbt_version_file) as f:
         content = f.read()
         match = re.search('version = "(.*)"', content)

@@ -9,16 +9,15 @@ select id,
 from {{ref('reviews')}}
 ```
 
-We use the [layer-dbt-adapter](https://github.com/layerai/dbt-adapters) to enable the `layer.predict` function. With `layer.predict`, we can load and apply a pre-trained machine learning model to data within a dbt pipeline. 
-This ML-enabled stage becomes part of the dbt execution DAG. 
-
+We use the [layer-dbt-adapter](https://github.com/layerai/dbt-adapters) to enable the `layer.predict` function. With `layer.predict`, we can load and apply a pre-trained machine learning model to data within a dbt pipeline.
+This ML-enabled stage becomes part of the dbt execution DAG.
 
 ## How to run
 
 First, install the open-source [Layer DBT Adapter](https://github.com/layerai/dbt-adapters). Currently, we only support BigQuery (more to come soon)
 
 ```shell
-pip install dbt-layer-bigquery -U -q
+pip install dbt-layer[bigquery] -U -q
 ```
 
 Next, install the required libraries. This ML model is a finetuned Pytorch model open-sourced by [NLPTown](https://www.nlp.town/). So, we need some additional libraries for Pytorch.
@@ -27,9 +26,8 @@ Next, install the required libraries. This ML model is a finetuned Pytorch model
 pip install torch torchvision
 ```
 
-Then, add a new BigQuery profile to your [DBT profile](https://docs.getdbt.com/dbt-cli/configure-your-profile/). Name it as `layer-profile`, and don't forget to set `type: layer_bigquery` for the Layer adapter to work. 
+Then, add a new BigQuery profile to your [DBT profile](https://docs.getdbt.com/dbt-cli/configure-your-profile/). Name it as `layer-profile`, and don't forget to set `type: layer_bigquery` for the Layer adapter to work.
 Here is a sample profile:
-
 
 ```yaml
 layer-profile:
@@ -45,12 +43,13 @@ layer-profile:
 ```
 
 Now, are are ready to clone this repo and get to the folder for this example:
+
 ```shell
 git clone https://github.com/layerai/examples-dbt
 cd examples-dbt/sentiment_analysis
 ```
 
-The example includes a sample dataset. 
+The example includes a sample dataset.
 You can seed the sample data [reviews table](seeds/reviews.csv) to your DWH.
 The dataset includes a sample of multi-language product reviews from Amazon.
 
@@ -68,7 +67,6 @@ When the project runs, the [layer-dbt-adapter](https://github.com/layerai/dbt-ad
 
 The application of the `layer.predict` function results in a column named `prediction`containing the predicted score for each row of the input dataset.
 In this dbt pipeline, the resulting dataset is written back to the DWH, resulting in a new table with the scored data.
-
 
 ## Machine Learning Model
 

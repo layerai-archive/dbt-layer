@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from importlib.machinery import SourceFileLoader
 from pathlib import Path, PurePosixPath
 from types import ModuleType
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import agate  # type: ignore
 import cloudpickle  # type: ignore
@@ -55,8 +55,12 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     Layer specific overrides
     """
 
+    LayerSQLParser = LayerSQLParser
+    CASE_SENSITIVE = True
+
     def __init__(self, config: AdapterConfig):
         super().__init__(config)
+        self.sql_parser = self.LayerSQLParser()
         self._manifest_lazy: Optional[Manifest] = None
 
     @property
@@ -90,7 +94,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         if the given `sql` represents a Layer build or train, run Layer
         otherwise, pass the `execute` call to the underlying class
         """
-        layer_sql_function = LayerSQLParser().parse(sql)
+        layer_sql_function = self.sql_parser.parse(sql)
         if layer_sql_function is None:
             return super().execute(sql, auto_begin, fetch)
 
@@ -224,7 +228,7 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
     ) -> Tuple[LayerAdapterResponse, agate.Table]:
         try:
             # load source dataframe
-            input_df = self._fetch_dataframe_by_sql(source_node, layer_sql_function.sql)
+            input_df = self._fetch_dataframe_by_sql(source_node, layer_sql_function.sql, layer_sql_function.all_columns)
             logger.debug("Fetched input dataframe - {}", input_df.shape)
 
             # Users can use the full path for fetching models. If they are authenticated, they can also use the model
@@ -308,15 +312,25 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
         sql = f"select * from {relation.render()}"  # nosec
         return self._fetch_dataframe_by_sql(node=node, sql=sql)
 
-    def _fetch_dataframe_by_sql(self, node: ManifestNode, sql: str) -> pd.DataFrame:
+    def _fetch_dataframe_by_sql(
+        self, node: ManifestNode, sql: str, query_column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
         """
         Fetches all the data from the given sql and returns it as a pandas dataframe
         """
+        # If case sensitive, don't map any columns
+        # If not case sensitive, map upper columns to the names given in the query
+        column_names_map = (
+            {}
+            if self.CASE_SENSITIVE or not query_column_names
+            else {column.upper(): column for column in query_column_names}
+        )
+
         with self.connection_for(node):
             # call super() instead of self to avoid a potential infinite loop
             unused_response, table = super().execute(sql, auto_begin=True, fetch=True)
             super().commit_if_has_connection()
-            dataframe = pandas_helper.from_agate_table(table)
+            dataframe = pandas_helper.from_agate_table(table, column_names_map)
 
         return dataframe
 
@@ -328,10 +342,16 @@ class LayerAdapter(BaseAdapter):  # pylint: disable=abstract-method
             file = Path(tmpdirname) / "data.csv"
             table = pandas_helper.to_agate_table_with_path(dataframe, file)
 
-            materialization_macro = self._manifest.macros["macro.dbt.materialization_seed_default"]
+            materialization_macro = self._manifest.find_materialization_macro_by_name(
+                self.config.project_name,
+                "seed",
+                self.type(),
+            )
 
             context = generate_runtime_model_context(node, self.config, self._manifest)
             context["load_agate_table"] = lambda: table
-            result = MacroGenerator(materialization_macro, context)()
+
+            with self.connection_for(node):
+                result = MacroGenerator(materialization_macro, context)()
 
         return result, table

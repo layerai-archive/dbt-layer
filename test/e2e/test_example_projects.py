@@ -22,42 +22,34 @@ class TestE2EExampleProjects:
             shutil.copytree(EXAMPLES_DIR, tmp_examples_dir)
             yield tmp_examples_dir
 
-    def test_run_titanic(self, dbt_examples_dir: Path, dbt_profiles_yaml_bigquery: Path) -> None:
+    def test_run_titanic(self, dbt_examples_dir: Path, dbt_profiles_yaml: Path) -> None:
         project_path = dbt_examples_dir / "titanic"
 
-        results = run_dbt(
-            ["seed", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
-        )
+        results = run_dbt(["seed", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml.parent)])
         assert len(results.results) == 1
         resp0 = results.results[0].adapter_response
         assert resp0["rows_affected"] == 891
         assert resp0["code"] == "INSERT"
 
-        results = run_dbt(
-            ["run", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
-        )
+        results = run_dbt(["run", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml.parent)])
         assert len(results.results) == 2
         resp0 = results.results[0].adapter_response
-        assert resp0["code"] == "CREATE TABLE"
-        assert resp0["rows_affected"] == 891
+        assert resp0["code"] in ["CREATE TABLE", "SUCCESS"]
+        assert resp0["rows_affected"] > 0
         resp1 = results.results[1].adapter_response
         assert resp1["code"] == "LAYER PREDICT"
         assert resp1["rows_affected"] == 891
 
-    def test_run_sentiment_analysis(self, dbt_examples_dir: Path, dbt_profiles_yaml_bigquery: Path) -> None:
+    def test_run_sentiment_analysis(self, dbt_examples_dir: Path, dbt_profiles_yaml: Path) -> None:
         project_path = dbt_examples_dir / "sentiment_analysis"
 
-        results = run_dbt(
-            ["seed", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
-        )
+        results = run_dbt(["seed", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml.parent)])
         assert len(results.results) == 1
         resp0 = results.results[0].adapter_response
         assert resp0["rows_affected"] == 20
         assert resp0["code"] == "INSERT"
 
-        results = run_dbt(
-            ["run", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml_bigquery.parent)]
-        )
+        results = run_dbt(["run", "--project-dir", str(project_path), "--profiles-dir", str(dbt_profiles_yaml.parent)])
         assert len(results.results) == 1
         resp0 = results.results[0].adapter_response
         assert resp0["code"] == "LAYER PREDICT"

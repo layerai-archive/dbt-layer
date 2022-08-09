@@ -1,5 +1,6 @@
 INSTALL_STAMP := .install.stamp
 POETRY := $(shell command -v poetry 2> /dev/null)
+EXTRAS ?= "bigquery snowflake"
 IN_VENV := $(shell echo $(CONDA_DEFAULT_ENV)$(CONDA_PREFIX)$(VIRTUAL_ENV))
 REQUIRED_POETRY_VERSION := 1.1.14
 
@@ -9,9 +10,9 @@ install: check-poetry $(INSTALL_STAMP) ## Install dependencies
 $(INSTALL_STAMP): pyproject.toml poetry.lock
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2; fi
 ifdef IN_VENV
-	$(POETRY) install
+	$(POETRY) install --extras $(EXTRAS)
 else
-	$(POETRY) install --remove-untracked
+	$(POETRY) install --extras $(EXTRAS) --remove-untracked
 endif
 	touch $(INSTALL_STAMP)
 
@@ -21,7 +22,7 @@ test: $(INSTALL_STAMP) ## Run unit tests
 
 .PHONY: e2e-test
 e2e-test: $(INSTALL_STAMP) ## Run e2e tests
-	$(POETRY) run pytest test/e2e --cov .
+	$(POETRY) run pytest test/e2e --adapter $(adapter) --cov .
 
 .PHONY: format
 format: $(INSTALL_STAMP) ## Apply formatters
@@ -52,11 +53,12 @@ check: test lint ## Run test and lint
 check-package-loads: ## Check that we can load the package without the dev dependencies
 	@rm -f $(INSTALL_STAMP)
 ifdef IN_VENV
-	$(POETRY) install --no-dev
+	$(POETRY) install --extras $(adapter) --no-dev
 else
-	$(POETRY) install --no-dev --remove-untracked
+	$(POETRY) install --extras $(adapter) --no-dev --remove-untracked
 endif
 	$(POETRY) run python -c "import dbt"
+	$(POETRY) run python -c "import dbt.adapters.layer_$(adapter)"
 
 .PHONY: publish
 publish: ## Publish to PyPi - should only run in CI

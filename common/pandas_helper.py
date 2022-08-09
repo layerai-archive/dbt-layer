@@ -1,6 +1,6 @@
 import decimal
 import pathlib
-from typing import Any, List
+from typing import Any, List, Mapping
 
 import agate  # type:ignore
 import numpy as np
@@ -8,16 +8,18 @@ import pandas as pd  # type:ignore
 from dbt.clients import agate_helper  # type:ignore
 
 
-def from_agate_table(table: agate.Table) -> pd.DataFrame:
+def from_agate_table(table: agate.Table, column_names_map: Mapping[str, str]) -> pd.DataFrame:
     """
     Converts the given agate table to a pandas dataframe
     """
+    column_names = [column_names_map.get(column.upper(), column) for column in table.column_names]
+
     if len(table.rows) > 0:
         column_types = [_type_from_value(val) for val in table.rows[0]]
         rows = [_from_agate_row(row, column_types) for row in table.rows]
     else:
         rows = []
-    return pd.DataFrame.from_records(rows, columns=table.column_names)
+    return pd.DataFrame.from_records(rows, columns=column_names)
 
 
 def _type_from_value(value: Any) -> Any:
