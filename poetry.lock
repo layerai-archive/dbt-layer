@@ -558,10 +558,10 @@ rsa = {version = ">=3.1.4,<5", markers = "python_version >= \"3.6\""}
 six = ">=1.9.0"
 
 [package.extras]
-aiohttp = ["requests (>=2.20.0,<3.0.0dev)", "aiohttp (>=3.6.2,<4.0.0dev)"]
-enterprise_cert = ["cryptography (==36.0.2)", "pyopenssl (==22.0.0)"]
-pyopenssl = ["pyopenssl (>=20.0.0)"]
 reauth = ["pyu2f (>=0.1.5)"]
+pyopenssl = ["pyopenssl (>=20.0.0)"]
+enterprise_cert = ["pyopenssl (==22.0.0)", "cryptography (==36.0.2)"]
+aiohttp = ["aiohttp (>=3.6.2,<4.0.0dev)", "requests (>=2.20.0,<3.0.0dev)"]
 
 [[package]]
 name = "google-cloud-bigquery"
@@ -583,14 +583,14 @@ python-dateutil = ">=2.7.2,<3.0dev"
 requests = ">=2.18.0,<3.0.0dev"
 
 [package.extras]
-all = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.38.1,<2.0dev)", "pyarrow (>=3.0.0,<8.0dev)", "geopandas (>=0.9.0,<1.0dev)", "Shapely (>=1.6.0,<2.0dev)", "pandas (>=0.24.2)", "ipython (>=7.0.1,!=8.1.0)", "tqdm (>=4.7.4,<5.0.0dev)", "opentelemetry-api (>=1.1.0)", "opentelemetry-sdk (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)"]
-bignumeric_type = ["pyarrow (>=3.0.0,<8.0dev)"]
-bqstorage = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.38.1,<2.0dev)", "pyarrow (>=3.0.0,<8.0dev)"]
-geopandas = ["geopandas (>=0.9.0,<1.0dev)", "Shapely (>=1.6.0,<2.0dev)"]
-ipython = ["ipython (>=7.0.1,!=8.1.0)"]
-opentelemetry = ["opentelemetry-api (>=1.1.0)", "opentelemetry-sdk (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)"]
-pandas = ["pandas (>=0.24.2)", "pyarrow (>=3.0.0,<8.0dev)"]
 tqdm = ["tqdm (>=4.7.4,<5.0.0dev)"]
+pandas = ["pyarrow (>=3.0.0,<8.0dev)", "pandas (>=0.24.2)"]
+opentelemetry = ["opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)", "opentelemetry-api (>=1.1.0)"]
+ipython = ["ipython (>=7.0.1,!=8.1.0)"]
+geopandas = ["Shapely (>=1.6.0,<2.0dev)", "geopandas (>=0.9.0,<1.0dev)"]
+bqstorage = ["pyarrow (>=3.0.0,<8.0dev)", "grpcio (>=1.38.1,<2.0dev)", "google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)"]
+bignumeric_type = ["pyarrow (>=3.0.0,<8.0dev)"]
+all = ["opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)", "opentelemetry-api (>=1.1.0)", "tqdm (>=4.7.4,<5.0.0dev)", "ipython (>=7.0.1,!=8.1.0)", "pandas (>=0.24.2)", "Shapely (>=1.6.0,<2.0dev)", "geopandas (>=0.9.0,<1.0dev)", "pyarrow (>=3.0.0,<8.0dev)", "grpcio (>=1.38.1,<2.0dev)", "google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)"]
 
 [[package]]
 name = "google-cloud-core"
@@ -945,7 +945,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2882102452"
+version = "0.10.2885525495"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -957,7 +957,7 @@ boto3 = ">=1.16.24"
 cryptography = ">=3.4.7"
 humanize = ">=3.11.0"
 Jinja2 = "*"
-layer-api = "0.9.378592"
+layer-api = "0.9.378960"
 mlflow-skinny = ">=1.25.0"
 networkx = ">=2.5"
 numpy = {version = "<1.22", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
@@ -976,7 +976,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.378592"
+version = "0.9.378960"
 description = ""
 category = "main"
 optional = false
@@ -2157,7 +2157,7 @@ snowflake = ["dbt-snowflake"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "0e33d50c69345c1362693aa6a19873fd9ffedc5041dbb852630b0ef7768cde46"
+content-hash = "30d3cd6782e232ddcd63b8962cff6d5e7b6cb70bbd0cba6cd79adaf1079078ec"
 
 [metadata.files]
 agate = [
@@ -2805,11 +2805,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2882102452-py3-none-any.whl", hash = "sha256:81ef1ae58134d516f248a7b144be170d3fd25cd00aee88479b3d8e2aa178e13c"},
-    {file = "layer-0.10.2882102452.tar.gz", hash = "sha256:fa323f725ccde010639f1fd222973aed798b8dd1bc3af1f57f833e88c4e8b0be"},
+    {file = "layer-0.10.2885525495-py3-none-any.whl", hash = "sha256:217af06b864106dae9d41ccd97658afa5b1a4bc069934b7649f685650f3fda36"},
+    {file = "layer-0.10.2885525495.tar.gz", hash = "sha256:8f090c2563b38fd18c6315fc99b7e5fd3890430737b10376aa7c552189a82a4b"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.378592-py3-none-any.whl", hash = "sha256:50b31ae0d0114d7ba5e30141efb774166d89a23cc53e9b330937f37b5a07b0c5"},
+    {file = "layer_api-0.9.378960-py3-none-any.whl", hash = "sha256:4cb2b86d5cd15b81c893ed678ef9315b8bb75481e65d5dbd4a879a96f68c0ed0"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
