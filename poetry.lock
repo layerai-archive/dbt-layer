@@ -945,7 +945,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.2935815632"
+version = "0.10.2942287353"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -2158,7 +2158,7 @@ snowflake = ["dbt-snowflake"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "7a1a581bf0180d24209cc7126d87546a27c33ec4ae98d2b8add8041c50b2d925"
+content-hash = "f03f119d91f640058dde9f2c054b46aa3982e783501f7d65bcb51f4c94097f4f"
 
 [metadata.files]
 agate = [
@@ -2806,8 +2806,8 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.2935815632-py3-none-any.whl", hash = "sha256:3eff5f18247bb4c4b3e2ab0b81cdf994b9eb4259ab7e6c333d3bcfc0c27e88d1"},
-    {file = "layer-0.10.2935815632.tar.gz", hash = "sha256:dee19355005cf00b510243d82a16b165b88f1ebb969790e84b482d05043c9426"},
+    {file = "layer-0.10.2942287353-py3-none-any.whl", hash = "sha256:fe9cb252c0fb59e2da3b445cb78cc9790a72f817a29b3477a9530aef98edcdd8"},
+    {file = "layer-0.10.2942287353.tar.gz", hash = "sha256:cdea2ed8dcd55045e2eef5490a5fd3e59d9187b0c97586c42b94ad8abfcce5df"},
 ]
 layer-api = [
     {file = "layer_api-0.9.380146-py3-none-any.whl", hash = "sha256:c02996d8e64c8b0558fe9b0cb3f3d7e17c87481f1466bc51996bc4389d0da6b8"},
