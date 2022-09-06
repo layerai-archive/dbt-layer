@@ -35,6 +35,7 @@ lint: $(INSTALL_STAMP) ## Run all linters
 	$(POETRY) run pylint  --recursive yes .
 	$(POETRY) run mypy .
 	$(POETRY) run bandit -x "./test/*" -r .
+	$(POETRY) lock --check
 
 .PHONY: check
 check: test lint ## Run test and lint
