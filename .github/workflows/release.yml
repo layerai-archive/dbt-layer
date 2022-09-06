@@ -18,7 +18,7 @@ jobs:
       - name: Setup poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.15
+          poetry-version: 1.2.0
       - name: Cache poetry virtualenvs
         uses: actions/cache@v3
         with:
@@ -42,7 +42,7 @@ jobs:
       - name: Setup poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.15
+          poetry-version: 1.2.0
       - name: Cache poetry virtualenvs
         uses: actions/cache@v3
         with:
@@ -64,7 +64,7 @@ jobs:
       - name: Setup poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.15
+          poetry-version: 1.2.0
       - name: Cache poetry virtualenvs
         uses: actions/cache@v3
         with:
@@ -84,12 +84,6 @@ jobs:
           base_sha: ${{ github.event.before }}
           files: ${{ steps.deps.outputs.paths }}
           files_separator: ','
-      - name: Check lockfile
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          make install
-          poetry lock --no-update
-          [ -z "$(git status --porcelain=v1 2>/dev/null)" ] || (echo "Lock file is not up to date, please run 'poetry lock --no-update'" && exit 1)
       - name: Publish
         if: steps.changed-files.outputs.any_changed == 'true'
         id: publish
