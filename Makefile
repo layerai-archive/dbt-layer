@@ -19,7 +19,7 @@ test: $(INSTALL_STAMP) ## Run unit tests
 
 .PHONY: e2e-test
 e2e-test: $(INSTALL_STAMP) ## Run e2e tests
-	$(POETRY) run pytest test/e2e --adapter $(adapter) --cov .
+	$(POETRY) run pytest $(E2E_TEST_SELECTOR) --adapter $(ADAPTER) --cov .
 
 .PHONY: format
 format: $(INSTALL_STAMP) ## Apply formatters
@@ -44,12 +44,12 @@ check: test lint ## Run test and lint
 check-package-loads: ## Check that we can load the package without the dev dependencies
 	@rm -f $(INSTALL_STAMP)
 ifdef IN_VENV
-	$(POETRY) install --extras $(adapter) --no-dev
+	$(POETRY) install --extras $(ADAPTER) --no-dev
 else
-	$(POETRY) install --extras $(adapter) --no-dev --remove-untracked
+	$(POETRY) install --extras $(ADAPTER) --no-dev --remove-untracked
 endif
 	$(POETRY) run python -c "import dbt"
-	$(POETRY) run python -c "import dbt.adapters.layer_$(adapter)"
+	$(POETRY) run python -c "import dbt.adapters.layer_$(ADAPTER)"
 
 .PHONY: publish
 publish: ## Publish to PyPi - should only run in CI
