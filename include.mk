@@ -7,6 +7,7 @@ UNAME_SYS := $(shell uname -s)
 UNAME_ARCH := $(shell uname -m)
 PROJECT_NAME := dbt-layer
 CONDA_ENV_NAME := $(shell echo $(CONDA_DEFAULT_ENV))
+E2E_TEST_SELECTOR := test/e2e
 
 ifneq ($(shell $(POETRY) --version | sed -En 's/Poetry \(version (.*)\)/\1/p'), $(REQUIRED_POETRY_VERSION))
 $(error "Please use Poetry version $(REQUIRED_POETRY_VERSION). Simply run: poetry self update $(REQUIRED_POETRY_VERSION)")
