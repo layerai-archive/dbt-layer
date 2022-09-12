@@ -50,7 +50,7 @@ jobs:
           key: poetry-venvs-no-dev-${{ runner.os }}-3.8-${{ matrix.adapter }}-${{ hashFiles('poetry.lock') }}
           restore-keys: poetry-vevns-no-dev-${{ runner.os }}-3.8-${{ matrix.adapter }}-
       - name: Check package loads without dev dependencies
-        run: make check-package-loads adapter=${{ matrix.adapter }}
+        run: make check-package-loads ADAPTER=${{ matrix.adapter }}
 
   publish:
     needs: [ check , check-package-loads]
