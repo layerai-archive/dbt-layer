@@ -950,7 +950,7 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "layer"
-version = "0.10.3084138152"
+version = "0.10.3106853441"
 description = "Layer AI SDK"
 category = "main"
 optional = false
@@ -962,7 +962,7 @@ boto3 = ">=1.16.24"
 cryptography = ">=3.4.7"
 humanize = ">=3.11.0"
 Jinja2 = "*"
-layer-api = "0.9.384134"
+layer-api = "0.9.384528"
 lazy_loader = "0.1rc3"
 mlflow-skinny = ">=1.25.0"
 networkx = ">=2.5"
@@ -980,7 +980,7 @@ yarl = ">=1.6.3"
 
 [[package]]
 name = "layer-api"
-version = "0.9.384134"
+version = "0.9.384528"
 description = ""
 category = "main"
 optional = false
@@ -2190,7 +2190,7 @@ snowflake = ["dbt-snowflake"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "10aaa495fd2102079277ed54ccc623794d4e7d0486b5037ce917594df11f63c3"
+content-hash = "6967c5516443050ad83c31ad93f518be9d0384a7ca0f42915da9e2dcb94488d1"
 
 [metadata.files]
 agate = [
@@ -2838,11 +2838,11 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
 ]
 layer = [
-    {file = "layer-0.10.3084138152-py3-none-any.whl", hash = "sha256:d3f7c33ffce3e3158f63e859f855f9627609606023c5224b8f704afda82c0300"},
-    {file = "layer-0.10.3084138152.tar.gz", hash = "sha256:71c36a56e5b63acb32e470acfa8ec21c5e13eda040a761051f1e6ead76701589"},
+    {file = "layer-0.10.3106853441-py3-none-any.whl", hash = "sha256:4742e3d649881a6fff34c0f421e70b792b9a690a97e777731bc62487a844c3ab"},
+    {file = "layer-0.10.3106853441.tar.gz", hash = "sha256:193ffd60c5d17283dc4e0686a73f581d531da6c7284516aa00edabf9b9d8d836"},
 ]
 layer-api = [
-    {file = "layer_api-0.9.384134-py3-none-any.whl", hash = "sha256:d600392e9ba7b2785e4ef58bc194612ccea7acc25b329a85fc3a8cc759610c9c"},
+    {file = "layer_api-0.9.384528-py3-none-any.whl", hash = "sha256:1c422bafc81c79f7ab1f04c63895d22c8f00d058ea3008a8c69360505fb4ba17"},
 ]
 lazy_loader = [
     {file = "lazy_loader-0.1rc3-py3-none-any.whl", hash = "sha256:243e691d64f0776a027b69bc50a4563d13975da59fe63247a0ccf11709cd46b1"},
